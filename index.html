@@ -615,25 +615,51 @@
             const monthSummaryDeadlineList = document.getElementById('monthSummaryDeadlineList');
             const monthSummaryTaskList = document.getElementById('monthSummaryTaskList');
 
-            // --- Gantt State ---
-            const laneHeight = 35; // Increased lane height for thicker tasks
-            const taskVerticalPadding = 5; // Adjusted padding for thicker tasks
+            // --- Gantt State / Constants ---
+            const laneHeight = 35; 
+            const taskVerticalPadding = 5; 
             const taskBarHeight = laneHeight - (2 * taskVerticalPadding);
             const startYear = 2024;
-            const totalMonths = 24; // Extended to 2 years
+            const totalMonths = 24; 
             let visibleMonthsCount = 6;
-            const minVisibleMonths = 3; // Minimum zoom level
-            const maxVisibleMonths = 12; // Maximum zoom level (can adjust)
+            const minVisibleMonths = 3; 
+            const maxVisibleMonths = 12; 
             let currentStartMonthIndex = 0;
             let currentProjectId = 1; 
-
-            // --- Data ---
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            // Procedural Color Palette for tasks
+            const taskColorPalette = [
+                '#ef5350', '#EC407A', '#AB47BC', '#7E57C2', '#5C6BC0', // Reds/Pinks/Purples
+                '#42A5F5', '#29B6F6', '#26C6DA', '#26A69A', '#66BB6A', // Blues/Teals/Greens
+                '#9CCC65', '#D4E157', '#FFEE58', '#FFCA28', '#FFA726', // Limes/Yellows/Oranges
+                '#FF7043', '#8D6E63', '#BDBDBD', '#78909C' // Orange/Brown/Grey/Blue Grey
+            ]; 
             
-            // Data is now loaded from data.js
+            // Data is now loaded from data.js (implicitly global)
             // const teamMembers = [ ... ]; 
             // const projects = [ ... ];
-            
+            // const globalDeadlines = [ ... ];
+
+             // --- Helper function to determine text color based on background luminance ---
+            function getTextColorForBackground(hexColor) {
+                // Convert hex to RGB
+                const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+                hexColor = hexColor.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexColor);
+                if (!result) return '#e0e0e0'; // Default light text on error
+    
+                const r = parseInt(result[1], 16);
+                const g = parseInt(result[2], 16);
+                const b = parseInt(result[3], 16);
+    
+                // Calculate luminance (using standard formula)
+                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+                // Return dark text for light backgrounds, light text for dark backgrounds
+                return luminance > 0.5 ? '#1e1e1e' : '#e0e0e0';
+            }
+
             function getCurrentProject() {
                 return projects.find(p => p.id === currentProjectId);
             }
@@ -843,7 +869,7 @@
                     }
                 });
 
-                teamMembers.forEach(member => {
+                teamMembers.forEach((member, memberIndex) => {
                     const memberTasks = tasksToRender
                         .filter(t => t.memberId === member.id)
                         .sort((a, b) => a.startMonth - b.startMonth || a.endMonth - b.endMonth);
@@ -919,7 +945,7 @@
                 ganttGrid.appendChild(header);
 
                 // --- Render Rows for each Team Member ---
-                teamMembers.forEach(member => {
+                teamMembers.forEach((member, memberIndex) => {
                     const row = document.createElement('div');
                     row.classList.add('gantt-row');
                     const memberRowHeight = (member.currentMaxLanes || 1) * laneHeight;
@@ -982,7 +1008,14 @@
                         taskBar.classList.add('gantt-task-bar');
                         taskBar.textContent = task.name;
                         taskBar.title = task.name;
-                        taskBar.style.backgroundColor = task.color || '#03dac6';
+
+                        // Assign procedural color based on memberIndex and then lane for variation
+                        const colorIndex = (memberIndex + task.lane) % taskColorPalette.length;
+                        const bgColor = taskColorPalette[colorIndex];
+                        taskBar.style.backgroundColor = bgColor;
+
+                        // Set text color based on background brightness
+                        taskBar.style.color = getTextColorForBackground(bgColor);
 
                         // Apply status classes
                         const isOverdue = !task.completed && (task.endMonth < currentAbsoluteMonthIndex);
@@ -992,10 +1025,6 @@
                             taskBar.classList.add('task-overdue');
                         }
                         
-                        if (['#f2f2f2', '#b0bec5', '#ffe082', '#90caf9', '#f48fb1'].includes(task.color) && !task.completed) {
-                             taskBar.style.color = '#1e1e1e';
-                        }
-
                         // Calculate task bar width and position based on visible window
                         const visibleTaskStartMonth = Math.max(task.startMonth, currentStartMonthIndex);
                         const visibleTaskEndMonth = Math.min(task.endMonth, currentStartMonthIndex + actualVisibleMonthsCount - 1);
