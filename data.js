@@ -78,6 +78,15 @@ const projects = [
                 endDate: { year: 2025, month: 8 }, 
                 completed: false, 
                 description: 'Complete development of campaign levels.' 
+            },
+            {
+                id: 7,
+                memberIds: [11, 12], // Francisco and Abdeel
+                name: 'AI Transport Vehicle System',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 7 },   // July 2025
+                completed: false,
+                description: 'Develop complete AI system for utilizing and operating transport vehicles.'
             }
         ],
         deadlines: [
@@ -91,7 +100,71 @@ const projects = [
     {
         id: 2,
         name: "Isolation Sequence",
-        tasks: [],
+        tasks: [
+            {
+                id: 1,
+                memberIds: [8], // Assassin
+                name: 'New Playable Build Development',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 7 },   // July 2025
+                completed: false,
+                description: 'Develop and deliver a new fully playable build of the game.'
+            },
+            {
+                id: 2,
+                memberIds: [6], // Putridi
+                name: 'Lobby Screen Levels Implementation',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false,
+                description: 'Complete development of all lobby screen levels.'
+            },
+            {
+                id: 3,
+                memberIds: [6, 7], // Putridi and Kartona
+                name: 'Test Mission Blockouts',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 7 },   // July 2025
+                completed: false,
+                description: 'Create three test mission blockouts for gameplay testing.'
+            },
+            {
+                id: 4,
+                memberIds: [6, 7], // Putridi and Kartona
+                name: 'Full Playable Level Development',
+                startDate: { year: 2025, month: 7 }, // July 2025
+                endDate: { year: 2025, month: 9 },   // September 2025
+                completed: false,
+                description: 'Develop one complete, fully playable level with all features implemented.'
+            },
+            {
+                id: 5,
+                memberIds: [3], // Bluedrake42
+                name: 'Game Design Document & Extraction System',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 5 },   // May 2025
+                completed: false,
+                description: 'Create comprehensive GDD including detailed explanation of the entire extraction system mechanics and gameplay loop.'
+            },
+            {
+                id: 6,
+                memberIds: [3], // Bluedrake42
+                name: 'UI Design and Blockouts',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false,
+                description: 'Complete all UI blockouts and graphic designs including menus, HUD, and in-game interface elements.'
+            },
+            {
+                id: 7,
+                memberIds: [2], // PookyThePolak
+                name: 'Weapon System Implementation',
+                startDate: { year: 2025, month: 6 }, // June 2025
+                endDate: { year: 2025, month: 8 },   // August 2025
+                completed: false,
+                description: 'Import and implement all weapons based on new design document specifications.'
+            }
+        ],
         deadlines: [
             {
                 date: { year: 2025, month: 10 },
