@@ -24,22 +24,10 @@ const projects = [
         ],
         deadlines: [
             {
-                monthIndex: 2, // March (0-indexed)
-                name: "Q1 Review",
-                description: "End of Quarter 1 review meeting with stakeholders. All relevant reports and presentations must be finalized.",
-                exactDate: "March 28th"
-            },
-            {
-                monthIndex: 5, // June
-                name: "Alpha Release",
-                description: "Target date for Alpha version release to internal testers. Key features A, B, C must be complete.",
-                exactDate: "June 15th"
-            },
-            {
-                monthIndex: 14, // March of the next year
-                name: "Beta Showcase",
-                description: "Internal showcase of the Beta version. All core functionalities should be stable.",
-                exactDate: "March 20th"
+                monthIndex: 23, // December 2025
+                name: "Full Release (Operation: Harsh Doorstop)",
+                description: "Full release out of early access for Operation: Harsh Doorstop on Steam.",
+                exactDate: "December 2025"
             }
         ]
     },
@@ -54,16 +42,23 @@ const projects = [
              { id: 105, memberId: 2, name: 'Sound Design', startMonth: 13, endMonth: 16, completed: false },
         ],
         deadlines: [
-             {
-                monthIndex: 4, // May
-                name: "Story Complete",
-                description: "Final approved version of the main story script.",
-                exactDate: "May 10th"
+            {
+                monthIndex: 21, // October 2025
+                name: "Steam Next Fest (Isolation Sequence)",
+                description: "Steam Next Fest for Isolation Sequence on Steam.",
+                exactDate: "October 2025"
             },
             {
-                monthIndex: 12, // January Next Year
-                name: "Art Asset Lock",
-                description: "All major environment and character art assets finalized.",
+                monthIndex: 23, // December 2025
+                name: "Early Access Release (Isolation Sequence)",
+                description: "Release into early access for Isolation Sequence on Steam.",
+                exactDate: "December 2025"
+            },
+            {
+                monthIndex: 35, // December 2026
+                name: "Full Release (Isolation Sequence)",
+                description: "Full release for Isolation Sequence on Steam.",
+                exactDate: "December 2026"
             }
         ]
     }
