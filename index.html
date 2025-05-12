@@ -613,17 +613,16 @@
             const closeMonthSummaryModalButton = document.getElementById('closeMonthSummaryModalButton');
             const modalMonthSummaryMonthYear = document.getElementById('modalMonthSummaryMonthYear');
             const monthSummaryDeadlineList = document.getElementById('monthSummaryDeadlineList');
-            const monthSummaryTaskList = document.getElementById('monthSummaryTaskList');
+            const modalMonthSummaryTaskList = document.getElementById('monthSummaryTaskList');
 
             // --- Gantt State / Constants ---
             const laneHeight = 35; 
             const taskVerticalPadding = 5; 
             const taskBarHeight = laneHeight - (2 * taskVerticalPadding);
             const startYear = 2024;
-            const totalMonths = 24; 
-            let visibleMonthsCount = 6;
+            const maxVisibleMonths = 12;
             const minVisibleMonths = 3; 
-            const maxVisibleMonths = 12; 
+            let visibleMonthsCount = maxVisibleMonths; // Default to max zoom out
             let currentStartMonthIndex = 0;
             let currentProjectId = 1; 
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -687,7 +686,6 @@
                 
                 // Boundary checks
                 currentStartMonthIndex = Math.max(0, currentStartMonthIndex); // Ensure not less than 0
-                currentStartMonthIndex = Math.min(currentStartMonthIndex, totalMonths - visibleMonthsCount); // Ensure doesn't go past end
                 
                 // Ensure valid index if total months < visible months (edge case)
                 if(currentStartMonthIndex < 0) currentStartMonthIndex = 0; 
@@ -816,6 +814,11 @@
                 }
                 const tasks = project.tasks;
                 
+                // Filter team members for the current project
+                const projectMembers = teamMembers.filter(member => 
+                    member.projectIds && member.projectIds.includes(currentProjectId)
+                );
+                
                 // Get current real-world date (once per render)
                 const now = new Date();
                 const currentRealYear = now.getFullYear();
@@ -823,19 +826,19 @@
                 // Calculate current month index relative to startYear
                 const currentAbsoluteMonthIndex = (currentRealYear - startYear) * 12 + currentRealMonthIndex;
 
-                // Calculate overdue tasks per member for the current project
-                teamMembers.forEach(member => {
+                // Calculate overdue tasks per member FOR THIS PROJECT
+                projectMembers.forEach(member => {
                     member.overdueTaskCount = project.tasks.filter(task => 
                         task.memberId === member.id &&
                         !task.completed &&
-                        (task.endMonth < currentAbsoluteMonthIndex) // Compare against relative absolute index
+                        (task.endMonth < currentAbsoluteMonthIndex)
                     ).length;
                 });
 
                 ganttGrid.innerHTML = ''; // Clear previous grid
 
                 // Determine visible months & years
-                const actualVisibleMonthsCount = Math.min(visibleMonthsCount, totalMonths - currentStartMonthIndex);
+                const actualVisibleMonthsCount = visibleMonthsCount;
                 const visibleMonthDetails = [];
                 for (let i = 0; i < actualVisibleMonthsCount; i++) {
                     const monthIndex = currentStartMonthIndex + i;
@@ -853,9 +856,9 @@
 
                 // Update button states (Navigation and Zoom)
                 prevMonthBtn.disabled = currentStartMonthIndex === 0;
-                nextMonthBtn.disabled = currentStartMonthIndex >= totalMonths - actualVisibleMonthsCount;
-                zoomOutBtn.disabled = actualVisibleMonthsCount <= minVisibleMonths;
-                zoomInBtn.disabled = actualVisibleMonthsCount >= maxVisibleMonths || actualVisibleMonthsCount >= totalMonths;
+                nextMonthBtn.disabled = false;
+                zoomOutBtn.disabled = visibleMonthsCount <= minVisibleMonths;
+                zoomInBtn.disabled = visibleMonthsCount >= maxVisibleMonths;
 
                 // Adjust grid columns
                 ganttGrid.style.gridTemplateColumns = `150px repeat(${actualVisibleMonthsCount}, 1fr)`;
@@ -868,8 +871,9 @@
                         tasksToRender.push({...task, lane: -1 }); // Clone task for rendering context
                     }
                 });
-
-                teamMembers.forEach((member, memberIndex) => {
+                
+                // Calculate lanes based on filtered project members
+                projectMembers.forEach((member, memberIndex) => {
                     const memberTasks = tasksToRender
                         .filter(t => t.memberId === member.id)
                         .sort((a, b) => a.startMonth - b.startMonth || a.endMonth - b.endMonth);
@@ -945,7 +949,7 @@
                 ganttGrid.appendChild(header);
 
                 // --- Render Rows for each Team Member ---
-                teamMembers.forEach((member, memberIndex) => {
+                projectMembers.forEach((member, memberIndex) => {
                     const row = document.createElement('div');
                     row.classList.add('gantt-row');
                     const memberRowHeight = (member.currentMaxLanes || 1) * laneHeight;
@@ -1063,10 +1067,8 @@
             });
 
             nextMonthBtn.addEventListener('click', () => {
-                if (currentStartMonthIndex < totalMonths - visibleMonthsCount) {
-                    currentStartMonthIndex++;
-                    renderGantt();
-                }
+                currentStartMonthIndex++;
+                renderGantt();
             });
             
             // --- Event Listeners for Zoom ---
@@ -1074,24 +1076,19 @@
                 if (visibleMonthsCount > minVisibleMonths) {
                     const oldCenterIndex = currentStartMonthIndex + Math.floor(visibleMonthsCount / 2);
                     visibleMonthsCount = Math.max(minVisibleMonths, visibleMonthsCount - 2); // Zoom out by 2 months
-                    // Try to keep the center month index roughly the same
                     currentStartMonthIndex = oldCenterIndex - Math.floor(visibleMonthsCount / 2);
                     currentStartMonthIndex = Math.max(0, currentStartMonthIndex); // Boundary check start
-                    currentStartMonthIndex = Math.min(currentStartMonthIndex, totalMonths - visibleMonthsCount); // Boundary check end
                     renderGantt();
                 }
             });
 
             zoomInBtn.addEventListener('click', () => {
-                const maxPossible = Math.min(maxVisibleMonths, totalMonths); // Can't zoom beyond total months
+                const maxPossible = maxVisibleMonths; // Only limited by max zoom level
                 if (visibleMonthsCount < maxPossible) {
                      const oldCenterIndex = currentStartMonthIndex + Math.floor(visibleMonthsCount / 2);
                     visibleMonthsCount = Math.min(maxPossible, visibleMonthsCount + 2); // Zoom in by 2 months
-                    // Try to keep the center month index roughly the same
                     currentStartMonthIndex = oldCenterIndex - Math.floor(visibleMonthsCount / 2);
                     currentStartMonthIndex = Math.max(0, currentStartMonthIndex); // Boundary check start
-                     // Re-check end boundary as zooming in might push start index too far if already near end
-                    currentStartMonthIndex = Math.min(currentStartMonthIndex, totalMonths - visibleMonthsCount);
                     renderGantt();
                 }
             });

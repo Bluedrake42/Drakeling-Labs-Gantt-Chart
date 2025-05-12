@@ -1,77 +1,41 @@
-const teamMembers = [ // Shared team members for now
-    { id: 1, name: 'Alice Wonderland', role: 'Frontend Developer' },
-    { id: 2, name: 'Bob The Builder', role: 'Backend Developer' },
-    { id: 3, name: 'Charlie Brown', role: 'Project Manager' },
-    { id: 4, name: 'Diana Prince', role: 'UI/UX Designer' },
-    { id: 5, name: 'Edward Scissorhands', role: 'QA Engineer' }
+const teamMembers = [
+    { id: 1, name: 'SRDDonkey', role: 'Lead Developer', projectIds: [1, 2] },
+    { id: 2, name: 'PookyThePolak', role: 'Gameplay Programmer', projectIds: [1, 2] },
+    { id: 3, name: 'Bluedrake42', role: 'Community Manager', projectIds: [1, 2] },
 ];
 
 const projects = [
     {
         id: 1,
-        name: "Project Phoenix",
+        name: "Operation: Harsh Doorstop",
         tasks: [
-            // Alice
-            { id: 1, memberId: 1, name: 'Task Alpha', startMonth: 0, endMonth: 2, completed: true }, // Jan '24 - Mar '24
-            { id: 2, memberId: 1, name: 'Task Beta', startMonth: 3, endMonth: 4, completed: true },  // Apr '24 - May '24
-            { id: 11, memberId: 1, name: 'Task Gamma', startMonth: 10, endMonth: 13, completed: false }, // Nov '24 - Feb '25 (Spans year)
-            { id: 14, memberId: 1, name: 'Final Review', startMonth: 22, endMonth: 23, completed: false }, // Nov '25 - Dec '25
-            // Bob
-            { id: 3, memberId: 2, name: 'Feature X', startMonth: 1, endMonth: 3, completed: true },   
-            { id: 4, memberId: 2, name: 'Bugfix Y', startMonth: 4, endMonth: 5, completed: true },    
-            { id: 10, memberId: 2, name: 'Review', startMonth: 8, endMonth: 9, completed: false }, // <-- Let's make this one overdue if current date is past Sep '24
-            { id: 12, memberId: 2, name: 'Feature Z', startMonth: 13, endMonth: 15, completed: false }, // Feb '25 - Apr '25
-            { id: 13, memberId: 2, name: 'Urgent Fix', startMonth: 14, endMonth: 14, completed: false }, // Mar '25
-            // Charlie
-            { id: 5, memberId: 3, name: 'Research Z', startMonth: 0, endMonth: 1, completed: true },  
-            { id: 6, memberId: 3, name: 'Documentation', startMonth: 17, endMonth: 19, completed: false },// Jun '25 - Aug '25
-            // Diana
-            { id: 7, memberId: 4, name: 'Deployment', startMonth: 6, endMonth: 8, completed: true },  
-            { id: 8, memberId: 4, name: 'Testing', startMonth: 20, endMonth: 22, completed: false }, // Sep '25 - Nov '25
-            // Edward
-            { id: 9, memberId: 5, name: 'Design Phase', startMonth: 2, endMonth: 5, completed: false }, // <-- Also potentially overdue 
+            // SRDDonkey
+            { id: 1, memberId: 1, name: 'Core Gameplay Loop', startMonth: 0, endMonth: 3, completed: true },
+            { id: 2, memberId: 1, name: 'AI Behavior Tree', startMonth: 4, endMonth: 6, completed: false },
+            { id: 6, memberId: 1, name: 'Networking Refactor', startMonth: 10, endMonth: 14, completed: false },
+            // PookyThePolak
+            { id: 3, memberId: 2, name: 'Weapon System Implementation', startMonth: 1, endMonth: 5, completed: true },
+            { id: 4, memberId: 2, name: 'Vehicle Physics', startMonth: 7, endMonth: 9, completed: false },
+            { id: 7, memberId: 2, name: 'Animation Integration', startMonth: 12, endMonth: 15, completed: false },
+            // Bluedrake42
+            { id: 5, memberId: 3, name: 'Community Feedback Analysis', startMonth: 0, endMonth: 1, completed: true },
+            { id: 8, memberId: 3, name: 'Content Creator Outreach', startMonth: 8, endMonth: 11, completed: false },
+             { id: 9, memberId: 3, name: 'Release Marketing Plan', startMonth: 16, endMonth: 18, completed: false },
         ]
     },
     {
         id: 2,
-        name: "Project Griffin",
+        name: "Isolation Sequence",
         tasks: [
-            { id: 101, memberId: 1, name: 'Griffin Setup', startMonth: 0, endMonth: 0, completed: true }, 
-            { id: 102, memberId: 3, name: 'Griffin Core Dev', startMonth: 11, endMonth: 15, completed: false },  // Dec '24 - Apr '25
-            { id: 103, memberId: 4, name: 'Griffin UI Mockups', startMonth: 13, endMonth: 14, completed: false }, // Feb '25 - Mar '25
-            { id: 104, memberId: 5, name: 'Griffin API', startMonth: 16, endMonth: 18, completed: false }, 
-            { id: 105, memberId: 2, name: 'Griffin Integration', startMonth: 19, endMonth: 21, completed: false }, 
-            { id: 106, memberId: 1, name: 'Griffin Testing', startMonth: 22, endMonth: 22, completed: false }, 
-        ]
-    },
-     {
-        id: 3,
-        name: "Project Chimera",
-        tasks: [
-            { id: 201, memberId: 2, name: 'Chimera Planning', startMonth: 3, endMonth: 4, completed: true }, 
-            { id: 202, memberId: 4, name: 'Chimera Backend', startMonth: 5, endMonth: 8, completed: false },  
-            { id: 203, memberId: 1, name: 'Chimera Frontend', startMonth: 6, endMonth: 9, completed: false }, 
-        ]
-    },
-    {
-        id: 4,
-        name: "Operation Hydra",
-        tasks: [
-            { id: 301, memberId: 5, name: 'Hydra Research', startMonth: 0, endMonth: 2, completed: true }, 
-            { id: 302, memberId: 3, name: 'Hydra Prototype', startMonth: 3, endMonth: 5, completed: false },  
-            { id: 303, memberId: 4, name: 'Hydra User Study', startMonth: 6, endMonth: 6, completed: false }, 
-        ]
-    },
-     {
-        id: 5,
-        name: "Project Leviathan",
-        tasks: [
-            { id: 401, memberId: 1, name: 'Leviathan Infra', startMonth: 8, endMonth: 10, completed: false }, 
-            { id: 402, memberId: 2, name: 'Leviathan Security Audit', startMonth: 11, endMonth: 11, completed: false },  
+            { id: 101, memberId: 1, name: 'Storyboarding', startMonth: 2, endMonth: 4, completed: true },
+            { id: 102, memberId: 2, name: 'Environment Art Pass', startMonth: 5, endMonth: 8, completed: false },
+            { id: 103, memberId: 1, name: 'Character Modeling', startMonth: 9, endMonth: 12, completed: false },
+            { id: 104, memberId: 3, name: 'Script Writing', startMonth: 1, endMonth: 3, completed: true },
+             { id: 105, memberId: 2, name: 'Sound Design', startMonth: 13, endMonth: 16, completed: false },
         ]
     }
     // Add more projects here if needed
-]; 
+];
 
 const globalDeadlines = [
     {
