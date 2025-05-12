@@ -383,8 +383,7 @@
             border-radius: 4px;
             background-color: #333; /* Slightly different bg for list */
         }
-        
-        #memberTaskList li {
+         #memberTaskList li {
             padding: 4px 8px; /* Reduced padding */
             border-bottom: 1px solid #444;
         }
@@ -525,7 +524,7 @@
             </p>
             <p><strong>Assignee:</strong> <span id="modalAssignee"></span></p>
             <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
-            <p><strong>Status:</strong> <span id="modalStatus">Not implemented</span></p> /* Placeholder for status */
+            <p><strong>Status:</strong> <span id="modalStatus">Not implemented</span></p>
         </div>
     </div>
 
@@ -648,6 +647,23 @@
                 return projects.find(p => p.id === currentProjectId);
             }
 
+            // --- Helper Functions for Date Handling ---
+            function dateToMonthIndex(date) {
+                return (date.year - startYear) * 12 + (date.month - 1);
+            }
+
+            function monthIndexToDate(monthIndex) {
+                const year = startYear + Math.floor(monthIndex / 12);
+                const month = (monthIndex % 12) + 1;
+                return { year, month };
+            }
+
+            function getFormattedMonthYear(monthIndex) {
+                const date = monthIndexToDate(monthIndex);
+                const monthName = monthNames[date.month - 1];
+                return `${monthName} ${date.year}`;
+            }
+
             // --- Initialize View ---
             function initializeView() {
                 renderTabs(); 
@@ -683,17 +699,20 @@
             function openModal(task) {
                 const project = getCurrentProject();
                 if (!project) return;
-                const assignee = teamMembers.find(m => m.id === task.memberId);
-                const startMonthStr = getFormattedMonthYear(task.startMonth);
-                const endMonthStr = getFormattedMonthYear(task.endMonth);
+                
+                const assignees = teamMembers.filter(m => task.memberIds.includes(m.id));
+                const assigneeNames = assignees.map(m => m.name).join(', ') || 'Unknown';
+                
+                const startMonthStr = getFormattedMonthYear(dateToMonthIndex(task.startDate));
+                const endMonthStr = getFormattedMonthYear(dateToMonthIndex(task.endDate));
 
                 // Determine Status for Modal
-                const nowModal = new Date();
-                const currentRealYearModal = nowModal.getFullYear();
-                const currentRealMonthIndexModal = nowModal.getMonth();
+                const now = new Date();
+                const currentRealYear = now.getFullYear();
+                const currentRealMonthIndex = now.getMonth();
                 let statusText = "In Progress";
-                const currentAbsoluteMonthIndexModal = (currentRealYearModal - startYear) * 12 + currentRealMonthIndexModal;
-                const isOverdueModal = !task.completed && (task.endMonth < currentAbsoluteMonthIndexModal);
+                const currentAbsoluteMonthIndex = (currentRealYear - startYear) * 12 + currentRealMonthIndex;
+                const isOverdueModal = !task.completed && (dateToMonthIndex(task.endDate) < currentAbsoluteMonthIndex);
 
                 if (task.completed) {
                     statusText = "Completed";
@@ -702,16 +721,15 @@
                 }
 
                 modalTaskName.textContent = task.name;
-                modalAssignee.textContent = assignee ? assignee.name : 'Unknown';
+                modalAssignee.textContent = assigneeNames;
                 modalDuration.textContent = `${startMonthStr} - ${endMonthStr}`;
-                modalStatus.textContent = statusText; // Display calculated status
+                modalStatus.textContent = statusText;
 
-                // Handle description display
                 if (task.description) {
                     modalTaskDescription.textContent = task.description;
-                    modalTaskDescriptionContainer.style.display = 'block'; // Show the container
+                    modalTaskDescriptionContainer.style.display = 'block';
                 } else {
-                    modalTaskDescriptionContainer.style.display = 'none'; // Hide the container
+                    modalTaskDescriptionContainer.style.display = 'none';
                 }
 
                 taskModal.style.display = 'block';
@@ -823,9 +841,9 @@
                 // Calculate overdue tasks per member FOR THIS PROJECT
                 projectMembers.forEach(member => {
                     member.overdueTaskCount = project.tasks.filter(task => 
-                        task.memberId === member.id &&
+                        task.memberIds.includes(member.id) && // Check if member is in the array
                         !task.completed &&
-                        (task.endMonth < currentAbsoluteMonthIndex)
+                        (dateToMonthIndex(task.endDate) < currentAbsoluteMonthIndex)
                     ).length;
                 });
 
@@ -860,16 +878,23 @@
                 // --- Lane Calculation for currently visible tasks ---
                 let tasksToRender = [];
                 tasks.forEach(task => {
+                    const startMonthIndex = dateToMonthIndex(task.startDate);
+                    const endMonthIndex = dateToMonthIndex(task.endDate);
                     // Check if task is visible in the current window
-                    if (task.endMonth >= currentStartMonthIndex && task.startMonth < currentStartMonthIndex + actualVisibleMonthsCount) {
-                        tasksToRender.push({...task, lane: -1 }); // Clone task for rendering context
+                    if (endMonthIndex >= currentStartMonthIndex && startMonthIndex < currentStartMonthIndex + actualVisibleMonthsCount) {
+                        tasksToRender.push({
+                            ...task,
+                            startMonth: startMonthIndex,
+                            endMonth: endMonthIndex,
+                            lane: -1
+                        });
                     }
                 });
                 
                 // Calculate lanes based on filtered project members
                 projectMembers.forEach((member, memberIndex) => {
                     const memberTasks = tasksToRender
-                        .filter(t => t.memberId === member.id)
+                        .filter(t => t.memberIds.includes(member.id)) // Filter tasks where member is assigned
                         .sort((a, b) => a.startMonth - b.startMonth || a.endMonth - b.endMonth);
                     
                     let lanes = []; 
@@ -910,8 +935,10 @@
                     cellContent.appendChild(monthText);
 
                     // Check for deadlines in this month for the CURRENT project
-                    const projectDeadlines = project.deadlines || []; // Ensure deadlines array exists
-                    const deadlinesForMonth = projectDeadlines.filter(d => d.monthIndex === monthDetail.fullIndex);
+                    const projectDeadlines = project.deadlines || [];
+                    const deadlinesForMonth = projectDeadlines.filter(d => 
+                        dateToMonthIndex(d.date) === monthDetail.fullIndex
+                    );
                     
                     if (deadlinesForMonth.length > 0) {
                         cell.classList.add('gantt-deadline-month');
@@ -987,8 +1014,8 @@
                         monthCell.style.height = `${memberRowHeight}px`;
                         
                         // Apply deadline column class
-                        const currentProjectDeadlines = project.deadlines || []; // Ensure deadlines array exists
-                        if (currentProjectDeadlines.some(d => d.monthIndex === monthDetail.fullIndex)) {
+                        const currentProjectDeadlines = project.deadlines || [];
+                        if (currentProjectDeadlines.some(d => dateToMonthIndex(d.date) === monthDetail.fullIndex)) {
                              monthCell.classList.add('gantt-deadline-month');
                         }
                         
@@ -1000,7 +1027,7 @@
                         monthCellsElements.push(monthCell);
                     });
 
-                    const memberVisibleTasks = tasksToRender.filter(t => t.memberId === member.id);
+                    const memberVisibleTasks = tasksToRender.filter(t => t.memberIds.includes(member.id)); // Filter again for this member
                     memberVisibleTasks.forEach(task => {
                         if (task.lane === -1) return;
 
@@ -1018,7 +1045,7 @@
                         taskBar.style.color = getTextColorForBackground(bgColor);
 
                         // Apply status classes
-                        const isOverdue = !task.completed && (task.endMonth < currentAbsoluteMonthIndex);
+                        const isOverdue = !task.completed && (dateToMonthIndex(task.endDate) < currentAbsoluteMonthIndex);
                         if (task.completed) {
                             taskBar.classList.add('task-completed');
                         } else if (isOverdue) {
@@ -1100,12 +1127,6 @@
                 return `${monthName} '${String(year).slice(-2)}`;
             }
 
-            function getFormattedMonthYear(monthIndex) {
-                const year = startYear + Math.floor(monthIndex / 12);
-                const monthName = monthNames[monthIndex % 12];
-                return `${monthName} ${year}`;
-            }
-
             function closeMemberModal() {
                 memberModal.style.display = 'none';
             }
@@ -1142,14 +1163,14 @@
                 const currentRealMonthIndex = now.getMonth();
                 const currentAbsoluteMonthIndex = (currentRealYear - startYear) * 12 + currentRealMonthIndex;
 
-                const assignedTasks = project.tasks.filter(task => task.memberId === member.id);
+                const assignedTasks = project.tasks.filter(task => task.memberIds.includes(member.id));
                 
                 const overdueCount = assignedTasks.filter(task => 
-                    !task.completed && task.endMonth < currentAbsoluteMonthIndex
+                    !task.completed && dateToMonthIndex(task.endDate) < currentAbsoluteMonthIndex
                 ).length;
                 
                 const upcomingCount = assignedTasks.filter(task => 
-                     !task.completed && task.endMonth >= currentAbsoluteMonthIndex
+                     !task.completed && dateToMonthIndex(task.endDate) >= currentAbsoluteMonthIndex
                 ).length;
 
                 modalMemberName.textContent = member.name;
@@ -1160,7 +1181,7 @@
                 // Populate task list
                 memberTaskList.innerHTML = ''; // Clear previous list
                 if (assignedTasks.length > 0) {
-                    assignedTasks.sort((a, b) => a.startMonth - b.startMonth).forEach(task => {
+                    assignedTasks.sort((a, b) => dateToMonthIndex(a.endDate) - dateToMonthIndex(b.endDate)).forEach(task => {
                         const li = document.createElement('li');
                         
                         const taskNameSpan = document.createElement('span');
@@ -1170,7 +1191,7 @@
                         // Add status indicator to list item
                         const statusSpan = document.createElement('span');
                         statusSpan.classList.add('task-detail-status');
-                        const isOverdue = !task.completed && task.endMonth < currentAbsoluteMonthIndex;
+                        const isOverdue = !task.completed && dateToMonthIndex(task.endDate) < currentAbsoluteMonthIndex;
                         if (task.completed) {
                             statusSpan.textContent = "Completed";
                             statusSpan.classList.add('completed');
@@ -1211,7 +1232,7 @@
                 
                 // Populate Deadlines for the current project
                 const projectDeadlinesForModal = project.deadlines || [];
-                const deadlinesInMonth = projectDeadlinesForModal.filter(d => d.monthIndex === monthIndex);
+                const deadlinesInMonth = projectDeadlinesForModal.filter(d => dateToMonthIndex(d.date) === monthIndex);
                 monthSummaryDeadlineList.innerHTML = '';
                 if (deadlinesInMonth.length > 0) {
                     deadlinesInMonth.forEach(deadline => {
@@ -1225,21 +1246,23 @@
 
                 // Populate Tasks
                 const tasksInMonth = project.tasks.filter(task => 
-                    task.startMonth <= monthIndex && task.endMonth >= monthIndex
+                    dateToMonthIndex(task.startDate) <= monthIndex && dateToMonthIndex(task.endDate) >= monthIndex
                 );
                 monthSummaryTaskList.innerHTML = '';
                 if (tasksInMonth.length > 0) {
-                     tasksInMonth.sort((a, b) => a.startMonth - b.startMonth).forEach(task => {
+                     tasksInMonth.sort((a, b) => dateToMonthIndex(a.startDate) - dateToMonthIndex(b.startDate)).forEach(task => {
                         const li = document.createElement('li');
-                        const assignee = teamMembers.find(m => m.id === task.memberId);
+                        // Find all assignees for the task
+                        const assignees = teamMembers.filter(m => task.memberIds.includes(m.id));
+                        const assigneeNames = assignees.map(m => m.name).join(', ') || 'Unknown';
                         
                         const taskNameSpan = document.createElement('span');
-                        taskNameSpan.textContent = `${task.name} (${assignee ? assignee.name : 'Unknown'})`;
+                        taskNameSpan.textContent = `${task.name} (${assigneeNames})`; // Show all assignees
                         li.appendChild(taskNameSpan);
                         
                         const statusSpan = document.createElement('span');
                         statusSpan.classList.add('task-detail-status');
-                        const isOverdue = !task.completed && task.endMonth < currentAbsoluteMonthIndex;
+                        const isOverdue = !task.completed && dateToMonthIndex(task.endDate) < currentAbsoluteMonthIndex;
                         if (task.completed) {
                             statusSpan.textContent = "Completed";
                             statusSpan.classList.add('completed');
