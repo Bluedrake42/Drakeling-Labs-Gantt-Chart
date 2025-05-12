@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Theme Gantt Chart</title>
+    <title>Drakeling Labs Studios - Task Management</title>
     <style>
         html, body {
             height: 100%;
@@ -34,10 +34,20 @@
 
         h1 {
             color: #bb86fc;
-            margin-bottom: 8px; /* Reduced margin */
+            margin-bottom: 2px; /* Reduced margin to bring subtitle closer */
             margin-top: 0; /* Remove default top margin */
             text-align: center;
             flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        h2.subtitle {
+            color: #aaa; /* Lighter color for subtitle */
+            font-size: 1.1em;
+            font-weight: normal;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 10px; /* Spacing below subtitle */
+            flex-shrink: 0;
         }
 
         /* Tab Styles */
@@ -407,7 +417,8 @@
 </head>
 <body>
     <div class="main-content">
-        <h1>Project Gantt Chart</h1>
+        <h1>Drakeling Labs Studios</h1>
+        <h2 class="subtitle">Task Management Board</h2>
 
         <div class="tab-container">
             <button class="tab-scroll-btn left" id="tabScrollLeftBtn" disabled>&lt;</button>
