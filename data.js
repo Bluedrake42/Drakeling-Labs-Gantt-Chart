@@ -72,3 +72,29 @@ const projects = [
     }
     // Add more projects here if needed
 ]; 
+
+const globalDeadlines = [
+    {
+        monthIndex: 2, // March (0-indexed)
+        name: "Q1 Review",
+        description: "End of Quarter 1 review meeting with stakeholders. All relevant reports and presentations must be finalized.",
+        exactDate: "March 28th"
+    },
+    {
+        monthIndex: 5, // June
+        name: "Alpha Release",
+        description: "Target date for Alpha version release to internal testers. Key features A, B, C must be complete.",
+        exactDate: "June 15th"
+    },
+    {
+        monthIndex: 10, // November
+        name: "Budget Planning FY25",
+        description: "Finalize budget proposals for the next fiscal year (FY25).",
+    },
+    {
+        monthIndex: 14, // March of the next year (e.g., 2025 if startYear is 2024)
+        name: "Beta Showcase",
+        description: "Internal showcase of the Beta version. All core functionalities should be stable.",
+        exactDate: "March 20th"
+    }
+]; 

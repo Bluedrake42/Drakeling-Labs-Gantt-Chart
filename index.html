@@ -413,6 +413,75 @@
              color: #80cbc4;
         }
 
+        /* Deadline Styles */
+        .gantt-deadline-month {
+            background-color: rgba(187, 134, 252, 0.08); /* Faint highlight using theme color */
+        }
+
+        .gantt-header .gantt-deadline-month {
+            background-color: rgba(187, 134, 252, 0.15); /* Slightly stronger for header */
+        }
+
+        .deadline-marker {
+            font-size: 0.8em;
+            cursor: pointer; /* Indicate clickable for later */
+            /* display: inline-block; */ /* Needed if not using flex on parent */
+            /* vertical-align: middle; */
+             filter: grayscale(30%); /* Slightly desaturate emoji */
+             transition: filter 0.2s ease;
+        }
+        .deadline-marker:hover {
+            filter: grayscale(0%);
+        }
+
+        .gantt-header .gantt-cell > div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px; /* Space between text and marker */
+            height: 100%;
+        }
+
+        /* Month Summary Modal List Styles */
+        #monthSummaryDeadlineList, #monthSummaryTaskList {
+            list-style: none;
+            padding: 0;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            max-height: 150px; /* Limit height */
+            overflow-y: auto;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #333;
+        }
+         #monthSummaryDeadlineList li, #monthSummaryTaskList li {
+            padding: 4px 8px; 
+            border-bottom: 1px solid #444;
+        }
+         #monthSummaryDeadlineList li:last-child, #monthSummaryTaskList li:last-child {
+            border-bottom: none;
+        }
+        /* Reuse task status styles */
+        #monthSummaryTaskList .task-detail-status {
+             font-size: 0.8em;
+             margin-left: 10px;
+             padding: 1px 4px;
+             border-radius: 3px;
+             opacity: 0.8;
+         }
+         #monthSummaryTaskList .task-detail-status.completed {
+             background-color: #555;
+             color: #ccc;
+         }
+         #monthSummaryTaskList .task-detail-status.overdue {
+              background-color: rgba(239, 83, 80, 0.2);
+              color: #ef9a9a;
+         }
+          #monthSummaryTaskList .task-detail-status.in-progress {
+              background-color: rgba(3, 218, 198, 0.1);
+              color: #80cbc4;
+         }
+
     </style>
 </head>
 <body>
@@ -473,6 +542,37 @@
         </div>
     </div>
 
+    <!-- The Deadline Modal -->
+    <div id="deadlineModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeDeadlineModalButton">&times;</span>
+            <h2>Deadline Details</h2>
+            <p><strong>Month:</strong> <span id="modalDeadlineMonthYear"></span></p>
+            <p><strong>Name:</strong> <span id="modalDeadlineName"></span></p>
+            <p><strong>Description:</strong></p>
+            <p id="modalDeadlineDescription" style="margin-left: 10px; font-style: italic;"></p>
+            <p><strong>Date:</strong> <span id="modalDeadlineExactDate"></span></p>
+        </div>
+    </div>
+
+    <!-- The Month Summary Modal -->
+    <div id="monthSummaryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeMonthSummaryModalButton">&times;</span>
+            <h2>Summary for <span id="modalMonthSummaryMonthYear"></span></h2>
+            
+            <h4>Deadlines:</h4>
+            <ul id="monthSummaryDeadlineList">
+                <!-- Deadline list -->
+            </ul>
+
+            <h4>Tasks (Active this Month):</h4>
+            <ul id="monthSummaryTaskList">
+                 <!-- Task list -->
+            </ul>
+        </div>
+    </div>
+
     <script src="data.js"></script> <!-- Load data first -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -501,6 +601,19 @@
             const modalMemberOverdue = document.getElementById('modalMemberOverdue');
             const modalMemberUpcoming = document.getElementById('modalMemberUpcoming');
             const memberTaskList = document.getElementById('memberTaskList');
+            // Deadline Modal Elements
+            const deadlineModal = document.getElementById('deadlineModal');
+            const closeDeadlineModalButton = document.getElementById('closeDeadlineModalButton');
+            const modalDeadlineMonthYear = document.getElementById('modalDeadlineMonthYear');
+            const modalDeadlineName = document.getElementById('modalDeadlineName');
+            const modalDeadlineDescription = document.getElementById('modalDeadlineDescription');
+            const modalDeadlineExactDate = document.getElementById('modalDeadlineExactDate');
+            // Month Summary Modal Elements
+            const monthSummaryModal = document.getElementById('monthSummaryModal');
+            const closeMonthSummaryModalButton = document.getElementById('closeMonthSummaryModalButton');
+            const modalMonthSummaryMonthYear = document.getElementById('modalMonthSummaryMonthYear');
+            const monthSummaryDeadlineList = document.getElementById('monthSummaryDeadlineList');
+            const monthSummaryTaskList = document.getElementById('monthSummaryTaskList');
 
             // --- Gantt State ---
             const laneHeight = 35; // Increased lane height for thicker tasks
@@ -765,11 +878,42 @@
                 visibleMonthDetails.forEach(monthDetail => {
                     const cell = document.createElement('div');
                     cell.classList.add('gantt-cell');
-                    cell.textContent = `${monthDetail.name} '${monthDetail.shortYear}`;
+                    
+                    // Content wrapper for flex layout
+                    const cellContent = document.createElement('div'); 
+                    const monthText = document.createElement('span');
+                    monthText.textContent = `${monthDetail.name} '${monthDetail.shortYear}`;
+                    cellContent.appendChild(monthText);
+
+                    // Check for deadlines in this month
+                    const deadlinesForMonth = globalDeadlines.filter(d => d.monthIndex === monthDetail.fullIndex);
+                    
+                    if (deadlinesForMonth.length > 0) {
+                        cell.classList.add('gantt-deadline-month');
+                        
+                        // Add first deadline marker (can enhance later for multiple)
+                        const marker = document.createElement('span');
+                        marker.classList.add('deadline-marker');
+                        marker.textContent = '🚩'; // Example marker
+                        marker.title = deadlinesForMonth[0].name; // Show first deadline name on hover
+                        cellContent.appendChild(marker);
+                    }
+
                     // Check if this header cell represents a past month
                     if (monthDetail.year < currentRealYear || (monthDetail.year === currentRealYear && monthDetail.fullIndex % 12 < currentRealMonthIndex)) {
                         cell.classList.add('gantt-past-month');
                     }
+                    
+                    // Make the whole content cell clickable for month summary
+                    cellContent.style.cursor = 'pointer';
+                    cellContent.dataset.monthIndex = monthDetail.fullIndex;
+                    cellContent.onclick = (e) => {
+                         // Get month index from the dataset attribute
+                        const clickedMonthIndex = parseInt(e.currentTarget.dataset.monthIndex);
+                        openMonthSummaryModal(clickedMonthIndex);
+                    };
+
+                    cell.appendChild(cellContent); // Add content wrapper to cell
                     header.appendChild(cell);
                 });
                 ganttGrid.appendChild(header);
@@ -816,6 +960,12 @@
                         const monthCell = document.createElement('div');
                         monthCell.classList.add('gantt-cell');
                         monthCell.style.height = `${memberRowHeight}px`;
+                        
+                        // Apply deadline column class
+                        if (globalDeadlines.some(d => d.monthIndex === monthDetail.fullIndex)) {
+                             monthCell.classList.add('gantt-deadline-month');
+                        }
+                        
                         // Check if this grid cell represents a past month
                         if (monthDetail.year < currentRealYear || (monthDetail.year === currentRealYear && monthDetail.fullIndex % 12 < currentRealMonthIndex)) {
                             monthCell.classList.add('gantt-past-month');
@@ -1021,6 +1171,104 @@
                 
                 memberModal.style.display = 'block';
             }
+
+            function closeMonthSummaryModal() {
+                monthSummaryModal.style.display = 'none';
+            }
+            
+            function openMonthSummaryModal(monthIndex) {
+                const project = getCurrentProject();
+                if (!project) return;
+
+                const now = new Date();
+                const currentRealYear = now.getFullYear();
+                const currentRealMonthIndex = now.getMonth();
+                const currentAbsoluteMonthIndex = (currentRealYear - startYear) * 12 + currentRealMonthIndex;
+
+                modalMonthSummaryMonthYear.textContent = getFormattedMonthYear(monthIndex);
+                
+                // Populate Deadlines
+                const deadlinesInMonth = globalDeadlines.filter(d => d.monthIndex === monthIndex);
+                monthSummaryDeadlineList.innerHTML = '';
+                if (deadlinesInMonth.length > 0) {
+                    deadlinesInMonth.forEach(deadline => {
+                        const li = document.createElement('li');
+                        li.textContent = `${deadline.name}${deadline.exactDate ? ' ('+deadline.exactDate+')' : ''}`;
+                        monthSummaryDeadlineList.appendChild(li);
+                    });
+                } else {
+                    monthSummaryDeadlineList.innerHTML = '<li>No deadlines this month.</li>';
+                }
+
+                // Populate Tasks
+                const tasksInMonth = project.tasks.filter(task => 
+                    task.startMonth <= monthIndex && task.endMonth >= monthIndex
+                );
+                monthSummaryTaskList.innerHTML = '';
+                if (tasksInMonth.length > 0) {
+                     tasksInMonth.sort((a, b) => a.startMonth - b.startMonth).forEach(task => {
+                        const li = document.createElement('li');
+                        const assignee = teamMembers.find(m => m.id === task.memberId);
+                        
+                        const taskNameSpan = document.createElement('span');
+                        taskNameSpan.textContent = `${task.name} (${assignee ? assignee.name : 'Unknown'})`;
+                        li.appendChild(taskNameSpan);
+                        
+                        const statusSpan = document.createElement('span');
+                        statusSpan.classList.add('task-detail-status');
+                        const isOverdue = !task.completed && task.endMonth < currentAbsoluteMonthIndex;
+                        if (task.completed) {
+                            statusSpan.textContent = "Completed";
+                            statusSpan.classList.add('completed');
+                        } else if (isOverdue) {
+                            statusSpan.textContent = "Overdue";
+                            statusSpan.classList.add('overdue');
+                        } else {
+                            statusSpan.textContent = "In Progress";
+                            statusSpan.classList.add('in-progress');
+                        }
+                        li.appendChild(statusSpan);
+
+                        monthSummaryTaskList.appendChild(li);
+                    });
+                } else {
+                     monthSummaryTaskList.innerHTML = '<li>No tasks active this month for ${project.name}.</li>';
+                }
+
+                monthSummaryModal.style.display = 'block';
+            }
+
+            // --- Modal Event Listeners Setup ---
+            // Setup common modal closing listeners once
+            function setupModalClosers() {
+                console.log("Setting up modal closers...");
+                // Close buttons
+                closeModalButton.onclick = () => { console.log('Close task modal button clicked'); closeModal(); }; 
+                closeMemberModalButton.onclick = () => { console.log('Close member modal button clicked'); closeMemberModal(); };
+                closeDeadlineModalButton.onclick = () => { console.log('Close deadline modal button clicked'); closeDeadlineModal(); };
+                closeMonthSummaryModalButton.onclick = () => { console.log('Close month summary modal button clicked'); closeMonthSummaryModal(); };
+
+                // Window click
+                 window.onclick = function(event) {
+                    console.log('Window clicked', event.target);
+                    if (event.target == taskModal) { console.log('Closing task modal via backdrop'); closeModal(); }
+                    if (event.target == memberModal) { console.log('Closing member modal via backdrop'); closeMemberModal(); }
+                    if (event.target == deadlineModal) { console.log('Closing deadline modal via backdrop'); closeDeadlineModal(); }
+                    if (event.target == monthSummaryModal) { console.log('Closing month summary modal via backdrop'); closeMonthSummaryModal(); }
+                 }
+
+                 // Escape key
+                 window.onkeydown = function(event) {
+                    if (event.key === "Escape") {
+                        console.log('Escape key pressed');
+                        if (taskModal.style.display === 'block') { console.log('Closing task modal via Escape'); closeModal(); }
+                        if (memberModal.style.display === 'block') { console.log('Closing member modal via Escape'); closeMemberModal(); }
+                        if (deadlineModal.style.display === 'block') { console.log('Closing deadline modal via Escape'); closeDeadlineModal(); }
+                        if (monthSummaryModal.style.display === 'block') { console.log('Closing month summary modal via Escape'); closeMonthSummaryModal(); }
+                    }
+                 }
+            }
+            setupModalClosers(); // Call setup
         });
     </script>
 </body>
