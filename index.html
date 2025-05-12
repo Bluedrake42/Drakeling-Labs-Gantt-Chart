@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Theme Gantt Chart</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #bb86fc;
+            margin-bottom: 5px; /* Reduce space below h1 */
+        }
+
+        .gantt-controls {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gantt-controls button {
+            background-color: #3a3a3a;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .gantt-controls button:hover {
+            background-color: #4a4a4a;
+        }
+
+        .gantt-controls button:disabled {
+            background-color: #2a2a2a;
+            color: #666;
+            cursor: not-allowed;
+            border-color: #444;
+        }
+
+        .gantt-controls span {
+            font-weight: bold;
+            color: #bb86fc;
+            min-width: 100px; /* Ensure space for date range */
+            text-align: center;
+        }
+
+        .gantt-container {
+            width: 95%;
+            max-width: 1200px;
+            overflow-x: auto;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .gantt-grid {
+            display: grid;
+            grid-template-columns: 150px repeat(12, 1fr); /* Team members column + 12 months */
+            position: relative;
+        }
+
+        .gantt-header, .gantt-row {
+            display: contents; /* Allows children to be direct grid items */
+        }
+
+        .gantt-cell {
+            padding: 0; /* Remove padding, manage spacing via task bar margin/position */
+            border-bottom: 1px solid #333;
+            border-right: 1px solid #333;
+            text-align: center;
+            font-size: 0.9em;
+            white-space: nowrap;
+            position: relative; /* Needed for absolute positioning of task bars */
+            overflow: visible; /* Allow task bars to potentially overflow visually if needed */
+            min-height: 30px; /* Minimum height for a cell */
+        }
+
+        .gantt-header .gantt-cell {
+            background-color: #333333;
+            color: #bb86fc;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding: 10px; /* Add padding back for header */
+            min-height: auto; /* Reset min-height for header */
+        }
+        
+        .gantt-header .gantt-cell:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+        }
+
+        .gantt-member-name {
+            background-color: #3a3a3a;
+            font-weight: bold;
+            text-align: left;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+             display: flex; 
+             align-items: center;
+             justify-content: space-between;
+             padding-right: 10px;
+             overflow: hidden;
+             white-space: nowrap;
+             text-overflow: ellipsis;
+        }
+        
+        .gantt-member-name > span:first-child { /* Target the name span specifically */
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            flex-grow: 1; /* Allow name to take available space */
+            min-width: 0; /* Prevent flex item from overflowing */
+        }
+
+        .gantt-task-bar-container {
+           /* This class might not be strictly needed anymore, cells act as containers */
+           /* We'll position task bars directly relative to .gantt-cell */
+            height: 100%;
+            width: 100%;
+        }
+
+        .gantt-task-bar {
+            position: absolute;
+            /* height will be set by JS based on laneHeight */
+            background-color: #03dac6; /* Default/fallback color */
+            border-radius: 4px;
+            /* margin: auto 2px; remove margin, use top/left positioning */
+            opacity: 0.8;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis; /* Add ... for overflow */
+            text-align: left;
+            padding-left: 5px;
+            box-sizing: border-box;
+            color: #121212;
+            font-size: 0.8em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+            z-index: 1; /* Ensure tasks are above grid lines but below headers */
+        }
+        .gantt-task-bar:hover {
+            opacity: 1;
+            background-color: #018786;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #2a2a2a; /* Dark background for modal */
+            color: #e0e0e0;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #bb86fc; /* Highlight color on hover */
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Tab Styles */
+        .tab-container {
+            display: flex;
+            width: 95%;
+            max-width: 1200px;
+            margin-bottom: 15px;
+            align-items: center;
+            background-color: #2a2a2a; /* Match container bg */
+            border-radius: 4px;
+            padding: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .tab-scroll-btn {
+            background: none;
+            border: none;
+            color: #bb86fc;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 0 10px;
+            line-height: 1;
+        }
+
+        .tab-scroll-btn:disabled {
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .tab-list-wrapper {
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tab-list {
+            display: flex;
+            white-space: nowrap;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-right: 5px;
+            color: #aaa;
+            transition: color 0.3s ease, border-color 0.3s ease;
+            flex-shrink: 0; /* Prevent tabs from shrinking */
+        }
+
+        .tab:hover {
+            color: #e0e0e0;
+        }
+
+        .tab.active {
+            color: #bb86fc;
+            border-bottom-color: #bb86fc;
+            font-weight: bold;
+        }
+
+        /* Style for past month cells */
+        .gantt-past-month {
+            background-color: #222; /* Slightly darker than default cell bg */
+            /* opacity: 0.7; */ /* Alternative: make it slightly transparent */
+        }
+
+        .gantt-header .gantt-past-month {
+            background-color: #282828; /* Slightly darker than default header bg */
+        }
+
+        .member-status-indicators {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .member-overdue-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #ef5350;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+
+        .member-overdue-count {
+            font-size: 0.8em;
+            color: #ef5350;
+            font-weight: bold;
+            background-color: rgba(239, 83, 80, 0.1);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        /* Task Status Styles */
+        .gantt-task-bar.task-completed {
+            opacity: 0.6;
+            border: 1px dashed #888;
+        }
+        
+        .gantt-task-bar.task-completed::before {
+            content: '✓';
+            margin-right: 4px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .gantt-task-bar.task-overdue {
+            border: 2px solid #ef5350;
+            box-shadow: 0 0 5px rgba(239, 83, 80, 0.5);
+        }
+
+        .gantt-task-bar.task-overdue::after {
+            content: '!';
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fff;
+            background-color: #ef5350;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            text-align: center;
+            line-height: 14px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Member Modal Specific Styles */
+        #memberModal .modal-content {
+             max-width: 600px; /* Allow slightly wider modal */
+        }
+
+        #memberTaskList {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+            max-height: 200px; /* Limit height and allow scroll */
+            overflow-y: auto;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #333; /* Slightly different bg for list */
+        }
+        
+        #memberTaskList li {
+            padding: 5px 10px;
+            border-bottom: 1px solid #444;
+        }
+
+        #memberTaskList li:last-child {
+            border-bottom: none;
+        }
+
+        #memberTaskList .task-detail-status {
+            font-size: 0.8em;
+            margin-left: 10px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            opacity: 0.8;
+        }
+        #memberTaskList .task-detail-status.completed {
+            background-color: #555;
+            color: #ccc;
+        }
+        #memberTaskList .task-detail-status.overdue {
+             background-color: rgba(239, 83, 80, 0.2);
+             color: #ef9a9a;
+        }
+         #memberTaskList .task-detail-status.in-progress {
+             background-color: rgba(3, 218, 198, 0.1);
+             color: #80cbc4;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Project Gantt Chart</h1>
+
+    <div class="tab-container">
+        <button class="tab-scroll-btn left" id="tabScrollLeftBtn" disabled>&lt;</button>
+        <div class="tab-list-wrapper">
+            <div class="tab-list" id="tabList">
+                <!-- Tabs will be generated here -->
+            </div>
+        </div>
+        <button class="tab-scroll-btn right" id="tabScrollRightBtn" disabled>&gt;</button>
+    </div>
+
+    <div class="gantt-controls">
+        <button id="prevMonthBtn" title="Previous Month">&lt;</button>
+        <span id="dateRangeSpan"></span> <!-- To show current visible range -->
+        <button id="nextMonthBtn" title="Next Month">&gt;</button>
+    </div>
+    <div class="gantt-container">
+        <div class="gantt-grid" id="ganttGrid">
+            <!-- Grid will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- The Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalButton">&times;</span>
+            <h2>Task Details</h2>
+            <p><strong>Task:</strong> <span id="modalTaskName"></span></p>
+            <p><strong>Assignee:</strong> <span id="modalAssignee"></span></p>
+            <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
+            <p><strong>Status:</strong> <span id="modalStatus">Not implemented</span></p> /* Placeholder for status */
+        </div>
+    </div>
+
+    <!-- The Member Modal -->
+    <div id="memberModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeMemberModalButton">&times;</span>
+            <h2>Team Member Details</h2>
+            <p><strong>Name:</strong> <span id="modalMemberName"></span></p>
+            <p><strong>Role:</strong> <span id="modalMemberRole"></span></p>
+            <p><strong>Overdue Tasks:</strong> <span id="modalMemberOverdue"></span></p>
+            <p><strong>Upcoming Tasks:</strong> <span id="modalMemberUpcoming"></span></p>
+            <p><strong>Assigned Tasks (Current Project):</strong></p>
+            <ul id="memberTaskList">
+                <!-- Task list will be populated here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- DOM Elements ---
+            const ganttGrid = document.getElementById('ganttGrid');
+            const taskModal = document.getElementById('taskModal');
+            const closeModalButton = document.getElementById('closeModalButton');
+            const modalTaskName = document.getElementById('modalTaskName');
+            const modalAssignee = document.getElementById('modalAssignee');
+            const modalDuration = document.getElementById('modalDuration');
+            const modalStatus = document.getElementById('modalStatus');
+            const prevMonthBtn = document.getElementById('prevMonthBtn');
+            const nextMonthBtn = document.getElementById('nextMonthBtn');
+            const dateRangeSpan = document.getElementById('dateRangeSpan');
+            const tabList = document.getElementById('tabList');
+            const tabScrollLeftBtn = document.getElementById('tabScrollLeftBtn');
+            const tabScrollRightBtn = document.getElementById('tabScrollRightBtn');
+            const tabListWrapper = document.querySelector('.tab-list-wrapper'); // Get wrapper for width check
+            // Member Modal Elements
+            const memberModal = document.getElementById('memberModal');
+            const closeMemberModalButton = document.getElementById('closeMemberModalButton');
+            const modalMemberName = document.getElementById('modalMemberName');
+            const modalMemberRole = document.getElementById('modalMemberRole');
+            const modalMemberOverdue = document.getElementById('modalMemberOverdue');
+            const modalMemberUpcoming = document.getElementById('modalMemberUpcoming');
+            const memberTaskList = document.getElementById('memberTaskList');
+
+            // --- Gantt State ---
+            const laneHeight = 25;
+            const taskVerticalPadding = 3;
+            const taskBarHeight = laneHeight - (2 * taskVerticalPadding);
+            const startYear = 2024;
+            const totalMonths = 24; // Extended to 2 years
+            let visibleMonthsCount = 6;
+            let currentStartMonthIndex = 0;
+            let currentProjectId = 1; 
+
+            // --- Data ---
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const teamMembers = [ // Shared team members for now
+                { id: 1, name: 'Alice Wonderland', role: 'Frontend Developer' },
+                { id: 2, name: 'Bob The Builder', role: 'Backend Developer' },
+                { id: 3, name: 'Charlie Brown', role: 'Project Manager' },
+                { id: 4, name: 'Diana Prince', role: 'UI/UX Designer' },
+                { id: 5, name: 'Edward Scissorhands', role: 'QA Engineer' }
+            ];
+
+            const projects = [
+                {
+                    id: 1,
+                    name: "Project Phoenix",
+                    tasks: [
+                        // Alice
+                        { id: 1, memberId: 1, name: 'Task Alpha', startMonth: 0, endMonth: 2, color: '#bb86fc', completed: true }, // Jan '24 - Mar '24
+                        { id: 2, memberId: 1, name: 'Task Beta', startMonth: 3, endMonth: 4, color: '#cf6679', completed: true },  // Apr '24 - May '24
+                        { id: 11, memberId: 1, name: 'Task Gamma', startMonth: 10, endMonth: 13, color: '#ffab91', completed: false }, // Nov '24 - Feb '25 (Spans year)
+                        { id: 14, memberId: 1, name: 'Final Review', startMonth: 22, endMonth: 23, color: '#4db6ac', completed: false }, // Nov '25 - Dec '25
+                        // Bob
+                        { id: 3, memberId: 2, name: 'Feature X', startMonth: 1, endMonth: 3, color: '#03dac6', completed: true },   
+                        { id: 4, memberId: 2, name: 'Bugfix Y', startMonth: 4, endMonth: 5, color: '#f2f2f2', completed: true },    
+                        { id: 10, memberId: 2, name: 'Review', startMonth: 8, endMonth: 9, color: '#ce93d8', completed: false }, // <-- Let's make this one overdue if current date is past Sep '24
+                        { id: 12, memberId: 2, name: 'Feature Z', startMonth: 13, endMonth: 15, color: '#80cbc4', completed: false }, // Feb '25 - Apr '25
+                        { id: 13, memberId: 2, name: 'Urgent Fix', startMonth: 14, endMonth: 14, color: '#ef5350', completed: false }, // Mar '25
+                        // Charlie
+                        { id: 5, memberId: 3, name: 'Research Z', startMonth: 0, endMonth: 1, color: '#b0bec5', completed: true },  
+                        { id: 6, memberId: 3, name: 'Documentation', startMonth: 17, endMonth: 19, color: '#ffe082', completed: false },// Jun '25 - Aug '25
+                        // Diana
+                        { id: 7, memberId: 4, name: 'Deployment', startMonth: 6, endMonth: 8, color: '#81c784', completed: true },  
+                        { id: 8, memberId: 4, name: 'Testing', startMonth: 20, endMonth: 22, color: '#90caf9', completed: false }, // Sep '25 - Nov '25
+                        // Edward
+                        { id: 9, memberId: 5, name: 'Design Phase', startMonth: 2, endMonth: 5, color: '#f48fb1', completed: false }, // <-- Also potentially overdue 
+                    ]
+                },
+                {
+                    id: 2,
+                    name: "Project Griffin",
+                    tasks: [
+                        { id: 101, memberId: 1, name: 'Griffin Setup', startMonth: 0, endMonth: 0, color: '#a1887f', completed: true }, 
+                        { id: 102, memberId: 3, name: 'Griffin Core Dev', startMonth: 11, endMonth: 15, color: '#9fa8da', completed: false },  // Dec '24 - Apr '25
+                        { id: 103, memberId: 4, name: 'Griffin UI Mockups', startMonth: 13, endMonth: 14, color: '#fce4ec', completed: false }, // Feb '25 - Mar '25
+                        { id: 104, memberId: 5, name: 'Griffin API', startMonth: 16, endMonth: 18, color: '#dcedc8', completed: false }, 
+                        { id: 105, memberId: 2, name: 'Griffin Integration', startMonth: 19, endMonth: 21, color: '#fff9c4', completed: false }, 
+                        { id: 106, memberId: 1, name: 'Griffin Testing', startMonth: 22, endMonth: 22, color: '#bcaaa4', completed: false }, 
+                    ]
+                },
+                {
+                    id: 3,
+                    name: "Project Chimera",
+                    tasks: [
+                        { id: 201, memberId: 2, name: 'Chimera Planning', startMonth: 3, endMonth: 4, color: '#f48fb1', completed: true }, 
+                        { id: 202, memberId: 4, name: 'Chimera Backend', startMonth: 5, endMonth: 8, color: '#ce93d8', completed: false },  
+                        { id: 203, memberId: 1, name: 'Chimera Frontend', startMonth: 6, endMonth: 9, color: '#ef9a9a', completed: false }, 
+                    ]
+                },
+                {
+                    id: 4,
+                    name: "Operation Hydra",
+                    tasks: [
+                        { id: 301, memberId: 5, name: 'Hydra Research', startMonth: 0, endMonth: 2, color: '#80cbc4', completed: true }, 
+                        { id: 302, memberId: 3, name: 'Hydra Prototype', startMonth: 3, endMonth: 5, color: '#c5e1a5', completed: false },  
+                        { id: 303, memberId: 4, name: 'Hydra User Study', startMonth: 6, endMonth: 6, color: '#fff59d', completed: false }, 
+                    ]
+                },
+                 {
+                    id: 5,
+                    name: "Project Leviathan",
+                    tasks: [
+                        { id: 401, memberId: 1, name: 'Leviathan Infra', startMonth: 8, endMonth: 10, color: '#90caf9', completed: false }, 
+                        { id: 402, memberId: 2, name: 'Leviathan Security Audit', startMonth: 11, endMonth: 11, color: '#ef5350', completed: false },  
+                    ]
+                }
+                // Add more projects here if needed
+            ];
+            
+            function getCurrentProject() {
+                return projects.find(p => p.id === currentProjectId);
+            }
+
+            // --- Initialize View ---
+            function initializeView() {
+                renderTabs(); // Render tabs first
+                const project = getCurrentProject();
+                if (!project) {
+                    ganttGrid.innerHTML = '<p style="padding: 20px; text-align: center;">Select a project.</p>';
+                    return; 
+                }
+                const tasks = project.tasks;
+                const latestTaskEndMonth = tasks.reduce((max, task) => Math.max(max, task.endMonth), -1);
+                
+                if (latestTaskEndMonth !== -1) {
+                    currentStartMonthIndex = Math.max(0, latestTaskEndMonth - visibleMonthsCount + 1);
+                } else {
+                    currentStartMonthIndex = 0; // Default if no tasks
+                }
+                // Ensure currentStartMonthIndex doesn't go too far if there are few tasks
+                currentStartMonthIndex = Math.min(currentStartMonthIndex, totalMonths - visibleMonthsCount);
+                if(currentStartMonthIndex < 0) currentStartMonthIndex = 0; // Handle case where totalMonths < visibleMonthsCount
+
+                renderGantt();
+                updateTabScrollButtons(); // Check scroll state after rendering tabs
+            }
+
+            // --- Modal Functions --- 
+            function openModal(task) {
+                const project = getCurrentProject();
+                if (!project) return;
+                const assignee = teamMembers.find(m => m.id === task.memberId);
+                const startMonthStr = getFormattedMonthYear(task.startMonth);
+                const endMonthStr = getFormattedMonthYear(task.endMonth);
+
+                // Determine Status for Modal
+                const nowModal = new Date();
+                const currentRealYearModal = nowModal.getFullYear();
+                const currentRealMonthIndexModal = nowModal.getMonth();
+                let statusText = "In Progress";
+                const currentAbsoluteMonthIndexModal = (currentRealYearModal - startYear) * 12 + currentRealMonthIndexModal;
+                const isOverdueModal = !task.completed && (task.endMonth < currentAbsoluteMonthIndexModal);
+
+                if (task.completed) {
+                    statusText = "Completed";
+                } else if (isOverdueModal) {
+                    statusText = "Overdue";
+                }
+
+                modalTaskName.textContent = task.name;
+                modalAssignee.textContent = assignee ? assignee.name : 'Unknown';
+                modalDuration.textContent = `${startMonthStr} - ${endMonthStr}`;
+                modalStatus.textContent = statusText; // Display calculated status
+                taskModal.style.display = 'block';
+            }
+
+            function closeModal() {
+                taskModal.style.display = 'none';
+            }
+
+            // Close modal events
+            closeModalButton.onclick = closeModal;
+            window.onclick = function(event) { // Close if clicked outside modal content
+                if (event.target == taskModal) {
+                    closeModal();
+                }
+            }
+            window.onkeydown = function(event) { // Close with Escape key
+                if (event.key === "Escape") {
+                    closeModal();
+                }
+            }
+
+            // --- Tab Functions ---
+            function renderTabs() {
+                tabList.innerHTML = ''; // Clear existing tabs
+                projects.forEach(project => {
+                    const tab = document.createElement('div');
+                    tab.classList.add('tab');
+                    tab.textContent = project.name;
+                    tab.dataset.projectId = project.id;
+                    if (project.id === currentProjectId) {
+                        tab.classList.add('active');
+                    }
+                    tab.addEventListener('click', handleTabClick);
+                    tabList.appendChild(tab);
+                });
+                updateTabScrollButtons(); // Update scroll buttons after rendering
+            }
+
+            function handleTabClick(event) {
+                const newProjectId = parseInt(event.target.dataset.projectId);
+                if (newProjectId !== currentProjectId) {
+                    currentProjectId = newProjectId;
+                    renderTabs(); // Re-render tabs to update active state
+                    initializeView(); // Re-initialize and render Gantt for the new project
+                }
+            }
+
+            function updateTabScrollButtons() {
+                 // Use setTimeout to allow the browser to render tabs and calculate widths accurately
+                setTimeout(() => {
+                    const wrapperWidth = tabListWrapper.offsetWidth;
+                    const listWidth = tabList.scrollWidth;
+                    const currentScroll = tabListWrapper.scrollLeft;
+                    
+                    tabScrollLeftBtn.disabled = currentScroll <= 0;
+                    tabScrollRightBtn.disabled = currentScroll >= listWidth - wrapperWidth -1; // -1 for potential rounding issues
+
+                    // Hide buttons altogether if no overflow
+                    if (listWidth <= wrapperWidth) {
+                        tabScrollLeftBtn.style.display = 'none';
+                        tabScrollRightBtn.style.display = 'none';
+                    } else {
+                        tabScrollLeftBtn.style.display = 'block';
+                        tabScrollRightBtn.style.display = 'block';
+                    }
+                }, 50); // Small delay
+            }
+
+            function scrollTabs(direction) {
+                const scrollAmount = tabListWrapper.offsetWidth * 0.8; // Scroll 80% of the visible width
+                tabListWrapper.scrollBy({ 
+                    left: direction * scrollAmount, 
+                    behavior: 'smooth' 
+                });
+                // Update buttons after scroll animation might finish
+                setTimeout(updateTabScrollButtons, 350); // Corresponds to smooth scroll duration
+            }
+
+            // Attach scroll button listeners
+            tabScrollLeftBtn.addEventListener('click', () => scrollTabs(-1));
+            tabScrollRightBtn.addEventListener('click', () => scrollTabs(1));
+            // Update scroll buttons on window resize
+            window.addEventListener('resize', updateTabScrollButtons);
+            // Also update on scroll (e.g., manual scroll via touchpad)
+            tabListWrapper.addEventListener('scroll', updateTabScrollButtons);
+
+            // --- Main Rendering Function ---
+            function renderGantt() {
+                const project = getCurrentProject();
+                if (!project) {
+                    ganttGrid.innerHTML = '<p style="padding: 20px; text-align: center;">Select a project.</p>';
+                    return; 
+                }
+                const tasks = project.tasks;
+                
+                // Get current real-world date (once per render)
+                const now = new Date();
+                const currentRealYear = now.getFullYear();
+                const currentRealMonthIndex = now.getMonth(); // 0-indexed (Jan=0)
+                // Calculate current month index relative to startYear
+                const currentAbsoluteMonthIndex = (currentRealYear - startYear) * 12 + currentRealMonthIndex;
+
+                // Calculate overdue tasks per member for the current project
+                teamMembers.forEach(member => {
+                    member.overdueTaskCount = project.tasks.filter(task => 
+                        task.memberId === member.id &&
+                        !task.completed &&
+                        (task.endMonth < currentAbsoluteMonthIndex) // Compare against relative absolute index
+                    ).length;
+                });
+
+                ganttGrid.innerHTML = ''; // Clear previous grid
+
+                // Determine visible months & years
+                const actualVisibleMonthsCount = Math.min(visibleMonthsCount, totalMonths - currentStartMonthIndex);
+                const visibleMonthDetails = [];
+                for (let i = 0; i < actualVisibleMonthsCount; i++) {
+                    const monthIndex = currentStartMonthIndex + i;
+                    const year = startYear + Math.floor(monthIndex / 12);
+                    const monthName = monthNames[monthIndex % 12];
+                    visibleMonthDetails.push({ name: monthName, year: year, shortYear: String(year).slice(-2), fullIndex: monthIndex });
+                }
+
+                // Update date range display
+                if (visibleMonthDetails.length > 0) {
+                    const firstVisible = visibleMonthDetails[0];
+                    const lastVisible = visibleMonthDetails[visibleMonthDetails.length - 1];
+                    dateRangeSpan.textContent = `${firstVisible.name} ${firstVisible.year} - ${lastVisible.name} ${lastVisible.year}`;
+                }
+
+                // Update button states
+                prevMonthBtn.disabled = currentStartMonthIndex === 0;
+                nextMonthBtn.disabled = currentStartMonthIndex >= totalMonths - actualVisibleMonthsCount;
+
+                // Adjust grid columns
+                ganttGrid.style.gridTemplateColumns = `150px repeat(${actualVisibleMonthsCount}, 1fr)`;
+
+                // --- Lane Calculation for currently visible tasks ---
+                let tasksToRender = [];
+                tasks.forEach(task => {
+                    // Check if task is visible in the current window
+                    if (task.endMonth >= currentStartMonthIndex && task.startMonth < currentStartMonthIndex + actualVisibleMonthsCount) {
+                        tasksToRender.push({...task, lane: -1 }); // Clone task for rendering context
+                    }
+                });
+
+                teamMembers.forEach(member => {
+                    const memberTasks = tasksToRender
+                        .filter(t => t.memberId === member.id)
+                        .sort((a, b) => a.startMonth - b.startMonth || a.endMonth - b.endMonth);
+                    
+                    let lanes = []; 
+                    let maxLanes = 0;
+                    memberTasks.forEach(task => {
+                        let assignedLane = -1;
+                        for (let i = 0; i < lanes.length; i++) {
+                            if (task.startMonth > lanes[i]) { 
+                                lanes[i] = task.endMonth;
+                                assignedLane = i;
+                                break;
+                            }
+                        }
+                        if (assignedLane === -1) { 
+                            lanes.push(task.endMonth);
+                            assignedLane = lanes.length - 1;
+                        }
+                        task.lane = assignedLane; 
+                        maxLanes = Math.max(maxLanes, lanes.length);
+                    });
+                    member.currentMaxLanes = maxLanes || 1; 
+                });
+
+                // --- Render Header ---
+                const header = document.createElement('div');
+                header.classList.add('gantt-header');
+                const emptyCell = document.createElement('div');
+                emptyCell.classList.add('gantt-cell');
+                header.appendChild(emptyCell);
+                visibleMonthDetails.forEach(monthDetail => {
+                    const cell = document.createElement('div');
+                    cell.classList.add('gantt-cell');
+                    cell.textContent = `${monthDetail.name} '${monthDetail.shortYear}`;
+                    // Check if this header cell represents a past month
+                    if (monthDetail.year < currentRealYear || (monthDetail.year === currentRealYear && monthDetail.fullIndex % 12 < currentRealMonthIndex)) {
+                        cell.classList.add('gantt-past-month');
+                    }
+                    header.appendChild(cell);
+                });
+                ganttGrid.appendChild(header);
+
+                // --- Render Rows for each Team Member ---
+                teamMembers.forEach(member => {
+                    const row = document.createElement('div');
+                    row.classList.add('gantt-row');
+                    const memberRowHeight = (member.currentMaxLanes || 1) * laneHeight;
+
+                    const nameCell = document.createElement('div');
+                    nameCell.classList.add('gantt-cell', 'gantt-member-name');
+                    nameCell.style.height = `${memberRowHeight}px`;
+                    
+                    // Add name and status indicators
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = member.name;
+                    nameSpan.title = member.name; // Keep tooltip for full name
+                    nameSpan.style.cursor = 'pointer'; // Make name clickable
+                    nameSpan.addEventListener('click', () => openMemberModal(member.id));
+                    nameCell.appendChild(nameSpan);
+
+                    if (member.overdueTaskCount > 0) {
+                        const indicatorsSpan = document.createElement('span');
+                        indicatorsSpan.classList.add('member-status-indicators');
+                        
+                        const overdueIndicator = document.createElement('span');
+                        overdueIndicator.classList.add('member-overdue-indicator');
+                        overdueIndicator.title = `${member.overdueTaskCount} overdue task(s)`;
+                        indicatorsSpan.appendChild(overdueIndicator);
+
+                        const overdueCount = document.createElement('span');
+                        overdueCount.classList.add('member-overdue-count');
+                        overdueCount.textContent = member.overdueTaskCount;
+                        indicatorsSpan.appendChild(overdueCount);
+
+                        nameCell.appendChild(indicatorsSpan);
+                    }
+                    
+                    row.appendChild(nameCell);
+
+                    const monthCellsElements = [];
+                    visibleMonthDetails.forEach((monthDetail, indexInView) => {
+                        const monthCell = document.createElement('div');
+                        monthCell.classList.add('gantt-cell');
+                        monthCell.style.height = `${memberRowHeight}px`;
+                        // Check if this grid cell represents a past month
+                        if (monthDetail.year < currentRealYear || (monthDetail.year === currentRealYear && monthDetail.fullIndex % 12 < currentRealMonthIndex)) {
+                            monthCell.classList.add('gantt-past-month');
+                        }
+                        row.appendChild(monthCell);
+                        monthCellsElements.push(monthCell);
+                    });
+
+                    const memberVisibleTasks = tasksToRender.filter(t => t.memberId === member.id);
+                    memberVisibleTasks.forEach(task => {
+                        if (task.lane === -1) return;
+
+                        const taskBar = document.createElement('div');
+                        taskBar.classList.add('gantt-task-bar');
+                        taskBar.textContent = task.name;
+                        taskBar.title = task.name;
+                        taskBar.style.backgroundColor = task.color || '#03dac6';
+
+                        // Apply status classes
+                        const isOverdue = !task.completed && (task.endMonth < currentAbsoluteMonthIndex);
+                        if (task.completed) {
+                            taskBar.classList.add('task-completed');
+                        } else if (isOverdue) {
+                            taskBar.classList.add('task-overdue');
+                        }
+                        
+                        if (['#f2f2f2', '#b0bec5', '#ffe082', '#90caf9', '#f48fb1'].includes(task.color) && !task.completed) {
+                             taskBar.style.color = '#1e1e1e';
+                        }
+
+                        // Calculate task bar width and position based on visible window
+                        const visibleTaskStartMonth = Math.max(task.startMonth, currentStartMonthIndex);
+                        const visibleTaskEndMonth = Math.min(task.endMonth, currentStartMonthIndex + actualVisibleMonthsCount - 1);
+                        
+                        const startOffsetInWindow = visibleTaskStartMonth - currentStartMonthIndex;
+                        const durationInWindow = visibleTaskEndMonth - visibleTaskStartMonth + 1;
+
+                        if (durationInWindow <= 0) return; // Task not in current view after clipping
+
+                        taskBar.style.width = `calc(${durationInWindow * 100}% - 4px)`;
+                        taskBar.style.left = '2px'; // Relative to the start cell
+                        taskBar.style.top = `${task.lane * laneHeight + taskVerticalPadding}px`;
+                        taskBar.style.height = `${taskBarHeight}px`;
+                        taskBar.style.cursor = 'pointer';
+                        taskBar.dataset.taskId = task.id;
+                        taskBar.addEventListener('click', (event) => {
+                            event.stopPropagation();
+                            const clickedTask = tasks.find(t => t.id === parseInt(event.currentTarget.dataset.taskId));
+                            if (clickedTask) openModal(clickedTask);
+                        });
+
+                        if (monthCellsElements[startOffsetInWindow]) {
+                            monthCellsElements[startOffsetInWindow].appendChild(taskBar);
+                        }
+                    });
+                    ganttGrid.appendChild(row);
+                });
+            }
+
+            // --- Event Listeners for Navigation ---
+            prevMonthBtn.addEventListener('click', () => {
+                if (currentStartMonthIndex > 0) {
+                    currentStartMonthIndex--;
+                    renderGantt();
+                }
+            });
+
+            nextMonthBtn.addEventListener('click', () => {
+                if (currentStartMonthIndex < totalMonths - visibleMonthsCount) {
+                    currentStartMonthIndex++;
+                    renderGantt();
+                }
+            });
+            
+            // Initial Load
+            initializeView(); // This will call renderTabs and renderGantt internally
+
+            // --- Helper function to get month name and short year for header ---
+            function getMonthHeaderLabel(monthOffset) { // monthOffset from currentStartMonthIndex
+                const actualMonthIndex = currentStartMonthIndex + monthOffset;
+                const year = startYear + Math.floor(actualMonthIndex / 12);
+                const monthName = monthNames[actualMonthIndex % 12];
+                return `${monthName} '${String(year).slice(-2)}`;
+            }
+
+            function getFormattedMonthYear(monthIndex) {
+                const year = startYear + Math.floor(monthIndex / 12);
+                const monthName = monthNames[monthIndex % 12];
+                return `${monthName} ${year}`;
+            }
+
+            function closeMemberModal() {
+                memberModal.style.display = 'none';
+            }
+
+            // Add event listeners for member modal
+            closeMemberModalButton.onclick = closeMemberModal;
+            // Reuse window click/keydown from task modal logic, but check if member modal is open
+            const originalWindowOnClick = window.onclick;
+            window.onclick = function(event) {
+                if (event.target == memberModal) {
+                    closeMemberModal();
+                } else if (originalWindowOnClick) {
+                    originalWindowOnClick(event); // Call original handler (for task modal)
+                }
+            }
+            const originalWindowOnKeydown = window.onkeydown;
+            window.onkeydown = function(event) {
+                if (event.key === "Escape") {
+                    if (memberModal.style.display === 'block') {
+                        closeMemberModal();
+                    } else if (taskModal.style.display === 'block' && originalWindowOnKeydown) {
+                         originalWindowOnKeydown(event); // Call original handler (for task modal escape)
+                    }
+                }
+            }
+            
+            function openMemberModal(memberId) {
+                const member = teamMembers.find(m => m.id === memberId);
+                const project = getCurrentProject();
+                if (!member || !project) return;
+
+                const now = new Date();
+                const currentRealYear = now.getFullYear();
+                const currentRealMonthIndex = now.getMonth();
+                const currentAbsoluteMonthIndex = (currentRealYear - startYear) * 12 + currentRealMonthIndex;
+
+                const assignedTasks = project.tasks.filter(task => task.memberId === member.id);
+                
+                const overdueCount = assignedTasks.filter(task => 
+                    !task.completed && task.endMonth < currentAbsoluteMonthIndex
+                ).length;
+                
+                const upcomingCount = assignedTasks.filter(task => 
+                     !task.completed && task.endMonth >= currentAbsoluteMonthIndex
+                ).length;
+
+                modalMemberName.textContent = member.name;
+                modalMemberRole.textContent = member.role || 'N/A';
+                modalMemberOverdue.textContent = overdueCount;
+                modalMemberUpcoming.textContent = upcomingCount;
+
+                // Populate task list
+                memberTaskList.innerHTML = ''; // Clear previous list
+                if (assignedTasks.length > 0) {
+                    assignedTasks.sort((a, b) => a.startMonth - b.startMonth).forEach(task => {
+                        const li = document.createElement('li');
+                        
+                        const taskNameSpan = document.createElement('span');
+                        taskNameSpan.textContent = task.name;
+                        li.appendChild(taskNameSpan);
+                        
+                        // Add status indicator to list item
+                        const statusSpan = document.createElement('span');
+                        statusSpan.classList.add('task-detail-status');
+                        const isOverdue = !task.completed && task.endMonth < currentAbsoluteMonthIndex;
+                        if (task.completed) {
+                            statusSpan.textContent = "Completed";
+                            statusSpan.classList.add('completed');
+                        } else if (isOverdue) {
+                            statusSpan.textContent = "Overdue";
+                            statusSpan.classList.add('overdue');
+                        } else {
+                            statusSpan.textContent = "In Progress";
+                            statusSpan.classList.add('in-progress');
+                        }
+                        li.appendChild(statusSpan);
+
+                        memberTaskList.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = 'No assigned tasks in this project.';
+                    memberTaskList.appendChild(li);
+                }
+                
+                memberModal.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
