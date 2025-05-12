@@ -431,6 +431,8 @@
         </div>
 
         <div class="gantt-controls">
+            <button id="zoomInBtn" title="Zoom In (+)">-</button>
+            <button id="zoomOutBtn" title="Zoom Out (-)">+</button> 
             <button id="prevMonthBtn" title="Previous Month">&lt;</button>
             <span id="dateRangeSpan"></span> <!-- To show current visible range -->
             <button id="nextMonthBtn" title="Next Month">&gt;</button>
@@ -488,6 +490,8 @@
             const tabScrollLeftBtn = document.getElementById('tabScrollLeftBtn');
             const tabScrollRightBtn = document.getElementById('tabScrollRightBtn');
             const tabListWrapper = document.querySelector('.tab-list-wrapper'); // Get wrapper for width check
+            const zoomOutBtn = document.getElementById('zoomOutBtn');
+            const zoomInBtn = document.getElementById('zoomInBtn');
             // Member Modal Elements
             const memberModal = document.getElementById('memberModal');
             const closeMemberModalButton = document.getElementById('closeMemberModalButton');
@@ -504,6 +508,8 @@
             const startYear = 2024;
             const totalMonths = 24; // Extended to 2 years
             let visibleMonthsCount = 6;
+            const minVisibleMonths = 3; // Minimum zoom level
+            const maxVisibleMonths = 12; // Maximum zoom level (can adjust)
             let currentStartMonthIndex = 0;
             let currentProjectId = 1; 
 
@@ -776,9 +782,11 @@
                     dateRangeSpan.textContent = `${firstVisible.name} ${firstVisible.year} - ${lastVisible.name} ${lastVisible.year}`;
                 }
 
-                // Update button states
+                // Update button states (Navigation and Zoom)
                 prevMonthBtn.disabled = currentStartMonthIndex === 0;
                 nextMonthBtn.disabled = currentStartMonthIndex >= totalMonths - actualVisibleMonthsCount;
+                zoomOutBtn.disabled = actualVisibleMonthsCount <= minVisibleMonths;
+                zoomInBtn.disabled = actualVisibleMonthsCount >= maxVisibleMonths || actualVisibleMonthsCount >= totalMonths;
 
                 // Adjust grid columns
                 ganttGrid.style.gridTemplateColumns = `150px repeat(${actualVisibleMonthsCount}, 1fr)`;
@@ -948,6 +956,33 @@
             nextMonthBtn.addEventListener('click', () => {
                 if (currentStartMonthIndex < totalMonths - visibleMonthsCount) {
                     currentStartMonthIndex++;
+                    renderGantt();
+                }
+            });
+            
+            // --- Event Listeners for Zoom ---
+            zoomOutBtn.addEventListener('click', () => {
+                if (visibleMonthsCount > minVisibleMonths) {
+                    const oldCenterIndex = currentStartMonthIndex + Math.floor(visibleMonthsCount / 2);
+                    visibleMonthsCount = Math.max(minVisibleMonths, visibleMonthsCount - 2); // Zoom out by 2 months
+                    // Try to keep the center month index roughly the same
+                    currentStartMonthIndex = oldCenterIndex - Math.floor(visibleMonthsCount / 2);
+                    currentStartMonthIndex = Math.max(0, currentStartMonthIndex); // Boundary check start
+                    currentStartMonthIndex = Math.min(currentStartMonthIndex, totalMonths - visibleMonthsCount); // Boundary check end
+                    renderGantt();
+                }
+            });
+
+            zoomInBtn.addEventListener('click', () => {
+                const maxPossible = Math.min(maxVisibleMonths, totalMonths); // Can't zoom beyond total months
+                if (visibleMonthsCount < maxPossible) {
+                     const oldCenterIndex = currentStartMonthIndex + Math.floor(visibleMonthsCount / 2);
+                    visibleMonthsCount = Math.min(maxPossible, visibleMonthsCount + 2); // Zoom in by 2 months
+                    // Try to keep the center month index roughly the same
+                    currentStartMonthIndex = oldCenterIndex - Math.floor(visibleMonthsCount / 2);
+                    currentStartMonthIndex = Math.max(0, currentStartMonthIndex); // Boundary check start
+                     // Re-check end boundary as zooming in might push start index too far if already near end
+                    currentStartMonthIndex = Math.min(currentStartMonthIndex, totalMonths - visibleMonthsCount);
                     renderGantt();
                 }
             });
