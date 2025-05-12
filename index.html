@@ -520,6 +520,9 @@
             <span class="close-button" id="closeModalButton">&times;</span>
             <h2>Task Details</h2>
             <p><strong>Task:</strong> <span id="modalTaskName"></span></p>
+            <p id="modalTaskDescriptionContainer" style="display: none;"> <!-- Add container, hidden by default -->
+                <strong>Description:</strong> <span id="modalTaskDescription" style="font-style: italic;"></span>
+            </p>
             <p><strong>Assignee:</strong> <span id="modalAssignee"></span></p>
             <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
             <p><strong>Status:</strong> <span id="modalStatus">Not implemented</span></p> /* Placeholder for status */
@@ -539,19 +542,6 @@
             <ul id="memberTaskList">
                 <!-- Task list will be populated here -->
             </ul>
-        </div>
-    </div>
-
-    <!-- The Deadline Modal -->
-    <div id="deadlineModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="closeDeadlineModalButton">&times;</span>
-            <h2>Deadline Details</h2>
-            <p><strong>Month:</strong> <span id="modalDeadlineMonthYear"></span></p>
-            <p><strong>Name:</strong> <span id="modalDeadlineName"></span></p>
-            <p><strong>Description:</strong></p>
-            <p id="modalDeadlineDescription" style="margin-left: 10px; font-style: italic;"></p>
-            <p><strong>Date:</strong> <span id="modalDeadlineExactDate"></span></p>
         </div>
     </div>
 
@@ -584,6 +574,8 @@
             const modalAssignee = document.getElementById('modalAssignee');
             const modalDuration = document.getElementById('modalDuration');
             const modalStatus = document.getElementById('modalStatus');
+            const modalTaskDescriptionContainer = document.getElementById('modalTaskDescriptionContainer'); // Get the container
+            const modalTaskDescription = document.getElementById('modalTaskDescription'); // Get the description span
             const prevMonthBtn = document.getElementById('prevMonthBtn');
             const nextMonthBtn = document.getElementById('nextMonthBtn');
             const dateRangeSpan = document.getElementById('dateRangeSpan');
@@ -601,13 +593,6 @@
             const modalMemberOverdue = document.getElementById('modalMemberOverdue');
             const modalMemberUpcoming = document.getElementById('modalMemberUpcoming');
             const memberTaskList = document.getElementById('memberTaskList');
-            // Deadline Modal Elements
-            const deadlineModal = document.getElementById('deadlineModal');
-            const closeDeadlineModalButton = document.getElementById('closeDeadlineModalButton');
-            const modalDeadlineMonthYear = document.getElementById('modalDeadlineMonthYear');
-            const modalDeadlineName = document.getElementById('modalDeadlineName');
-            const modalDeadlineDescription = document.getElementById('modalDeadlineDescription');
-            const modalDeadlineExactDate = document.getElementById('modalDeadlineExactDate');
             // Month Summary Modal Elements
             const monthSummaryModal = document.getElementById('monthSummaryModal');
             const closeMonthSummaryModalButton = document.getElementById('closeMonthSummaryModalButton');
@@ -720,6 +705,15 @@
                 modalAssignee.textContent = assignee ? assignee.name : 'Unknown';
                 modalDuration.textContent = `${startMonthStr} - ${endMonthStr}`;
                 modalStatus.textContent = statusText; // Display calculated status
+
+                // Handle description display
+                if (task.description) {
+                    modalTaskDescription.textContent = task.description;
+                    modalTaskDescriptionContainer.style.display = 'block'; // Show the container
+                } else {
+                    modalTaskDescriptionContainer.style.display = 'none'; // Hide the container
+                }
+
                 taskModal.style.display = 'block';
             }
 
@@ -915,8 +909,9 @@
                     monthText.textContent = `${monthDetail.name} '${monthDetail.shortYear}`;
                     cellContent.appendChild(monthText);
 
-                    // Check for deadlines in this month
-                    const deadlinesForMonth = globalDeadlines.filter(d => d.monthIndex === monthDetail.fullIndex);
+                    // Check for deadlines in this month for the CURRENT project
+                    const projectDeadlines = project.deadlines || []; // Ensure deadlines array exists
+                    const deadlinesForMonth = projectDeadlines.filter(d => d.monthIndex === monthDetail.fullIndex);
                     
                     if (deadlinesForMonth.length > 0) {
                         cell.classList.add('gantt-deadline-month');
@@ -992,7 +987,8 @@
                         monthCell.style.height = `${memberRowHeight}px`;
                         
                         // Apply deadline column class
-                        if (globalDeadlines.some(d => d.monthIndex === monthDetail.fullIndex)) {
+                        const currentProjectDeadlines = project.deadlines || []; // Ensure deadlines array exists
+                        if (currentProjectDeadlines.some(d => d.monthIndex === monthDetail.fullIndex)) {
                              monthCell.classList.add('gantt-deadline-month');
                         }
                         
@@ -1213,8 +1209,9 @@
 
                 modalMonthSummaryMonthYear.textContent = getFormattedMonthYear(monthIndex);
                 
-                // Populate Deadlines
-                const deadlinesInMonth = globalDeadlines.filter(d => d.monthIndex === monthIndex);
+                // Populate Deadlines for the current project
+                const projectDeadlinesForModal = project.deadlines || [];
+                const deadlinesInMonth = projectDeadlinesForModal.filter(d => d.monthIndex === monthIndex);
                 monthSummaryDeadlineList.innerHTML = '';
                 if (deadlinesInMonth.length > 0) {
                     deadlinesInMonth.forEach(deadline => {
@@ -1271,7 +1268,6 @@
                 // Close buttons
                 closeModalButton.onclick = () => { console.log('Close task modal button clicked'); closeModal(); }; 
                 closeMemberModalButton.onclick = () => { console.log('Close member modal button clicked'); closeMemberModal(); };
-                closeDeadlineModalButton.onclick = () => { console.log('Close deadline modal button clicked'); closeDeadlineModal(); };
                 closeMonthSummaryModalButton.onclick = () => { console.log('Close month summary modal button clicked'); closeMonthSummaryModal(); };
 
                 // Window click
@@ -1279,7 +1275,6 @@
                     console.log('Window clicked', event.target);
                     if (event.target == taskModal) { console.log('Closing task modal via backdrop'); closeModal(); }
                     if (event.target == memberModal) { console.log('Closing member modal via backdrop'); closeMemberModal(); }
-                    if (event.target == deadlineModal) { console.log('Closing deadline modal via backdrop'); closeDeadlineModal(); }
                     if (event.target == monthSummaryModal) { console.log('Closing month summary modal via backdrop'); closeMonthSummaryModal(); }
                  }
 
@@ -1289,7 +1284,6 @@
                         console.log('Escape key pressed');
                         if (taskModal.style.display === 'block') { console.log('Closing task modal via Escape'); closeModal(); }
                         if (memberModal.style.display === 'block') { console.log('Closing member modal via Escape'); closeMemberModal(); }
-                        if (deadlineModal.style.display === 'block') { console.log('Closing deadline modal via Escape'); closeDeadlineModal(); }
                         if (monthSummaryModal.style.display === 'block') { console.log('Closing month summary modal via Escape'); closeMonthSummaryModal(); }
                     }
                  }
