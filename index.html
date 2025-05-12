@@ -5,27 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dark Theme Gantt Chart</title>
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent body scroll, scrolling happens in container */
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #1e1e1e;
             color: #e0e0e0;
-            margin: 0;
-            padding: 20px;
+            /* Remove margin/padding from body, apply padding to main-content */
             display: flex;
             flex-direction: column;
-            align-items: center;
+            /* align-items: center; Remove this, let containers stretch */
+        }
+
+        /* Optional: Add a main content wrapper for padding */
+        .main-content {
+            padding: 10px 15px; /* Reduced vertical padding */
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Allow this area to grow */
+            overflow: hidden; /* Prevent this wrapper from scrolling */
+            height: 100%; /* Ensure it tries to take full height */
+            box-sizing: border-box;
         }
 
         h1 {
             color: #bb86fc;
-            margin-bottom: 5px; /* Reduce space below h1 */
+            margin-bottom: 8px; /* Reduced margin */
+            margin-top: 0; /* Remove default top margin */
+            text-align: center;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        /* Tab Styles */
+        .tab-container {
+            display: flex;
+            width: 100%; 
+            margin-bottom: 10px; /* Reduced margin */
+            align-items: center;
+            background-color: #2a2a2a; 
+            border-radius: 4px;
+            padding: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .tab-scroll-btn {
+            background: none;
+            border: none;
+            color: #bb86fc;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 0 10px;
+            line-height: 1;
+        }
+
+        .tab-scroll-btn:disabled {
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        .tab-list-wrapper {
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tab-list {
+            display: flex;
+            white-space: nowrap;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .tab {
+            padding: 6px 12px; /* Reduced padding */
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-right: 5px;
+            color: #aaa;
+            transition: color 0.3s ease, border-color 0.3s ease;
+            flex-shrink: 0; /* Prevent tabs from shrinking */
+        }
+
+        .tab:hover {
+            color: #e0e0e0;
+        }
+
+        .tab.active {
+            color: #bb86fc;
+            border-bottom-color: #bb86fc;
+            font-weight: bold;
         }
 
         .gantt-controls {
-            margin-bottom: 15px;
+            margin-bottom: 10px; /* Reduced margin */
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px; /* Reduced gap */
         }
 
         .gantt-controls button {
@@ -57,13 +137,17 @@
         }
 
         .gantt-container {
-            width: 95%;
-            max-width: 1200px;
-            overflow-x: auto;
+            /* width: 95%; Remove fixed width */
+            /* max-width: 1200px; Remove max-width */
+            width: 100%; /* Take full width */
+            overflow-x: auto; /* Allow horizontal scroll for grid */
+            overflow-y: auto; /* Allow vertical scroll for grid */
             border: 1px solid #333;
             border-radius: 8px;
             background-color: #2a2a2a;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            flex-grow: 1; /* Allow container to fill remaining vertical space */
+            position: relative; /* Needed for sticky headers to work within */
         }
 
         .gantt-grid {
@@ -77,15 +161,15 @@
         }
 
         .gantt-cell {
-            padding: 0; /* Remove padding, manage spacing via task bar margin/position */
+            padding: 0; 
             border-bottom: 1px solid #333;
             border-right: 1px solid #333;
             text-align: center;
             font-size: 0.9em;
             white-space: nowrap;
-            position: relative; /* Needed for absolute positioning of task bars */
-            overflow: visible; /* Allow task bars to potentially overflow visually if needed */
-            min-height: 30px; /* Minimum height for a cell */
+            position: relative; 
+            overflow: visible; 
+            /* min-height: 30px; Remove fixed min height, let it be set by row height */
         }
 
         .gantt-header .gantt-cell {
@@ -95,7 +179,7 @@
             position: sticky;
             top: 0;
             z-index: 2;
-            padding: 10px; /* Add padding back for header */
+            padding: 8px 10px; /* Adjusted padding */
             min-height: auto; /* Reset min-height for header */
         }
         
@@ -115,7 +199,8 @@
              display: flex; 
              align-items: center;
              justify-content: space-between;
-             padding-right: 10px;
+             padding-left: 8px; /* Adjusted padding */
+             padding-right: 8px; /* Adjusted padding */
              overflow: hidden;
              white-space: nowrap;
              text-overflow: ellipsis;
@@ -178,7 +263,7 @@
             background-color: #2a2a2a; /* Dark background for modal */
             color: #e0e0e0;
             margin: 5% auto;
-            padding: 20px;
+            padding: 15px 20px; /* Adjusted padding */
             border: 1px solid #888;
             width: 80%;
             max-width: 500px;
@@ -201,67 +286,6 @@
             color: #bb86fc; /* Highlight color on hover */
             text-decoration: none;
             cursor: pointer;
-        }
-
-        /* Tab Styles */
-        .tab-container {
-            display: flex;
-            width: 95%;
-            max-width: 1200px;
-            margin-bottom: 15px;
-            align-items: center;
-            background-color: #2a2a2a; /* Match container bg */
-            border-radius: 4px;
-            padding: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .tab-scroll-btn {
-            background: none;
-            border: none;
-            color: #bb86fc;
-            font-size: 1.5em;
-            cursor: pointer;
-            padding: 0 10px;
-            line-height: 1;
-        }
-
-        .tab-scroll-btn:disabled {
-            color: #555;
-            cursor: not-allowed;
-        }
-
-        .tab-list-wrapper {
-            flex-grow: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .tab-list {
-            display: flex;
-            white-space: nowrap;
-            position: relative;
-            transition: transform 0.3s ease;
-        }
-
-        .tab {
-            padding: 8px 15px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            margin-right: 5px;
-            color: #aaa;
-            transition: color 0.3s ease, border-color 0.3s ease;
-            flex-shrink: 0; /* Prevent tabs from shrinking */
-        }
-
-        .tab:hover {
-            color: #e0e0e0;
-        }
-
-        .tab.active {
-            color: #bb86fc;
-            border-bottom-color: #bb86fc;
-            font-weight: bold;
         }
 
         /* Style for past month cells */
@@ -351,7 +375,7 @@
         }
         
         #memberTaskList li {
-            padding: 5px 10px;
+            padding: 4px 8px; /* Reduced padding */
             border-bottom: 1px solid #444;
         }
 
@@ -382,29 +406,32 @@
     </style>
 </head>
 <body>
-    <h1>Project Gantt Chart</h1>
+    <div class="main-content">
+        <h1>Project Gantt Chart</h1>
 
-    <div class="tab-container">
-        <button class="tab-scroll-btn left" id="tabScrollLeftBtn" disabled>&lt;</button>
-        <div class="tab-list-wrapper">
-            <div class="tab-list" id="tabList">
-                <!-- Tabs will be generated here -->
+        <div class="tab-container">
+            <button class="tab-scroll-btn left" id="tabScrollLeftBtn" disabled>&lt;</button>
+            <div class="tab-list-wrapper">
+                <div class="tab-list" id="tabList">
+                    <!-- Tabs will be generated here -->
+                </div>
+            </div>
+            <button class="tab-scroll-btn right" id="tabScrollRightBtn" disabled>&gt;</button>
+        </div>
+
+        <div class="gantt-controls">
+            <button id="prevMonthBtn" title="Previous Month">&lt;</button>
+            <span id="dateRangeSpan"></span> <!-- To show current visible range -->
+            <button id="nextMonthBtn" title="Next Month">&gt;</button>
+        </div>
+        <div class="gantt-container">
+            <div class="gantt-grid" id="ganttGrid">
+                <!-- Grid will be generated by JavaScript -->
             </div>
         </div>
-        <button class="tab-scroll-btn right" id="tabScrollRightBtn" disabled>&gt;</button>
     </div>
 
-    <div class="gantt-controls">
-        <button id="prevMonthBtn" title="Previous Month">&lt;</button>
-        <span id="dateRangeSpan"></span> <!-- To show current visible range -->
-        <button id="nextMonthBtn" title="Next Month">&gt;</button>
-    </div>
-    <div class="gantt-container">
-        <div class="gantt-grid" id="ganttGrid">
-            <!-- Grid will be generated by JavaScript -->
-        </div>
-    </div>
-
+    <!-- Modals remain outside main-content for full overlay -->
     <!-- The Modal -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
@@ -460,8 +487,8 @@
             const memberTaskList = document.getElementById('memberTaskList');
 
             // --- Gantt State ---
-            const laneHeight = 25;
-            const taskVerticalPadding = 3;
+            const laneHeight = 35; // Increased lane height for thicker tasks
+            const taskVerticalPadding = 5; // Adjusted padding for thicker tasks
             const taskBarHeight = laneHeight - (2 * taskVerticalPadding);
             const startYear = 2024;
             const totalMonths = 24; // Extended to 2 years
@@ -553,26 +580,34 @@
 
             // --- Initialize View ---
             function initializeView() {
-                renderTabs(); // Render tabs first
+                renderTabs(); 
                 const project = getCurrentProject();
                 if (!project) {
                     ganttGrid.innerHTML = '<p style="padding: 20px; text-align: center;">Select a project.</p>';
                     return; 
                 }
-                const tasks = project.tasks;
-                const latestTaskEndMonth = tasks.reduce((max, task) => Math.max(max, task.endMonth), -1);
+                // No longer need project tasks to determine initial view
+                // const tasks = project.tasks;
+                // const latestTaskEndMonth = tasks.reduce((max, task) => Math.max(max, task.endMonth), -1);
                 
-                if (latestTaskEndMonth !== -1) {
-                    currentStartMonthIndex = Math.max(0, latestTaskEndMonth - visibleMonthsCount + 1);
-                } else {
-                    currentStartMonthIndex = 0; // Default if no tasks
-                }
-                // Ensure currentStartMonthIndex doesn't go too far if there are few tasks
-                currentStartMonthIndex = Math.min(currentStartMonthIndex, totalMonths - visibleMonthsCount);
-                if(currentStartMonthIndex < 0) currentStartMonthIndex = 0; // Handle case where totalMonths < visibleMonthsCount
+                // Calculate initial view based on current date
+                const now = new Date();
+                const currentRealYear = now.getFullYear();
+                const currentRealMonthIndex = now.getMonth(); // 0-indexed
+                const currentAbsoluteMonthIndex = (currentRealYear - startYear) * 12 + currentRealMonthIndex;
+                
+                // Set start index to 2 months before current month
+                currentStartMonthIndex = currentAbsoluteMonthIndex - 2; 
+                
+                // Boundary checks
+                currentStartMonthIndex = Math.max(0, currentStartMonthIndex); // Ensure not less than 0
+                currentStartMonthIndex = Math.min(currentStartMonthIndex, totalMonths - visibleMonthsCount); // Ensure doesn't go past end
+                
+                // Ensure valid index if total months < visible months (edge case)
+                if(currentStartMonthIndex < 0) currentStartMonthIndex = 0; 
 
                 renderGantt();
-                updateTabScrollButtons(); // Check scroll state after rendering tabs
+                updateTabScrollButtons(); 
             }
 
             // --- Modal Functions --- 
