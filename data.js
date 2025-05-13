@@ -14,6 +14,7 @@ const teamMembers = [
     { id: 13, name: 'Pizzaman', role: 'Contributor', projectIds: [1] },
     { id: 14, name: 'MrPonchovie', role: 'Contributor', projectIds: [1] },
     { id: 15, name: 'Yoshi', role: 'Contributor', projectIds: [1] },
+    { id: 16, name: 'Unassigned', role: 'Unassigned', projectIds: [1] }
 ];
 
 const projects = [
@@ -87,6 +88,132 @@ const projects = [
                 endDate: { year: 2025, month: 7 },   // July 2025
                 completed: false,
                 description: 'Develop complete AI system for utilizing and operating transport vehicles.'
+            },
+            {
+                id: 8,
+                memberIds: [16],
+                name: 'Implement "Hold Breath" & "Slight Zoom" Functionality While ADS',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Add hold breath and slight zoom functionality while aiming down sights.'
+            },
+            {
+                id: 9,
+                memberIds: [16],
+                name: 'Implement Radio Filters for VOIP',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Add radio filter effects for VOIP communication.'
+            },
+            {
+                id: 10,
+                memberIds: [16],
+                name: 'Fix Auto-Balance Team Switching',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Stop auto-balance from killing players while they are alive to teamswitch them.'
+            },
+            {
+                id: 11,
+                memberIds: [16],
+                name: 'Implement Free Look Capability',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Add free look functionality for enhanced situational awareness.'
+            },
+            {
+                id: 12,
+                memberIds: [16],
+                name: 'Add Spread Projectiles System',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Implement spread projectiles system to support weapons like shotguns.'
+            },
+            {
+                id: 13,
+                memberIds: [16],
+                name: 'Implement Kit Request and Rearm System',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Implement requesting kits & rearming from ammo crates using the radial system.'
+            },
+            {
+                id: 14,
+                memberIds: [16],
+                name: 'Implement Squad Vehicle Claiming',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Add system for squads to claim vehicles.'
+            },
+            {
+                id: 15,
+                memberIds: [16],
+                name: 'Implement Vehicle Kit Restrictions',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Add kit restrictions for vehicle access.'
+            },
+            {
+                id: 16,
+                memberIds: [16],
+                name: 'Implement Squad Platoon Equipment Kits',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Add squad platoon equipment kit system.'
+            },
+            {
+                id: 17,
+                memberIds: [16],
+                name: 'Overhaul Third Person Animations',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Complete overhaul of third person animation system.'
+            },
+            {
+                id: 18,
+                memberIds: [16],
+                name: 'Expand UI With Upgrades',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Expand UI with Casualfield & PerpIDK upgrades.'
+            },
+            {
+                id: 19,
+                memberIds: [16],
+                name: 'Add Steam Achievements',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Implement in-game Steam achievements system.'
+            },
+            {
+                id: 20,
+                memberIds: [16],
+                name: 'Implement Moddable Localization System',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Add support for moddable localization system.'
+            },
+            {
+                id: 21,
+                memberIds: [16],
+                name: 'Implement Constructible Armed Emplacements',
+                startDate: { year: 2025, month: 5 },
+                endDate: { year: 2025, month: 12 },
+                completed: false,
+                description: 'Add system for constructing and operating armed emplacements.'
             }
         ],
         deadlines: [
