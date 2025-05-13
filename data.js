@@ -214,6 +214,15 @@ const projects = [
                 endDate: { year: 2025, month: 12 },
                 completed: false,
                 description: 'Add system for constructing and operating armed emplacements.'
+            },
+            {
+                id: 22,
+                memberIds: [1],
+                name: 'Projectile Networking Synchronization', 
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 12 },  // December 2025
+                completed: false, 
+                description: 'Improve projectile networking sync, including fixing frag grenade issues.' 
             }
         ],
         deadlines: [
