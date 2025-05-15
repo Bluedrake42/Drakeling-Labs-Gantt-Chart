@@ -179,6 +179,7 @@
             white-space: nowrap;
             position: relative; 
             overflow: visible; 
+            box-sizing: border-box; /* Explicitly set box-sizing */
             /* min-height: 30px; Remove fixed min height, let it be set by row height */
         }
 
@@ -213,6 +214,7 @@
              overflow: hidden;
              white-space: nowrap;
              text-overflow: ellipsis;
+             box-sizing: border-box; /* Explicitly set box-sizing */
         }
          .gantt-member-name > span:first-child { /* Target the name span specifically */
             overflow: hidden;
@@ -888,7 +890,7 @@
                 modalStatus.textContent = statusText;
 
                 if (task.description) {
-                    modalTaskDescription.textContent = task.description;
+                    modalTaskDescription.innerHTML = task.description;
                     modalTaskDescriptionContainer.style.display = 'block';
                 } else {
                     modalTaskDescriptionContainer.style.display = 'none';
@@ -1088,7 +1090,7 @@
                             lanes.push(task.endMonth);
                             assignedLane = lanes.length - 1;
                         }
-                        task.lane = assignedLane; 
+                        // task_for_max_lane_calc.lane = assignedLane; // DO NOT WRITE TO THE SHARED TASK OBJECT HERE
                         maxLanes = Math.max(maxLanes, lanes.length);
                     });
                     member.currentMaxLanes = maxLanes || 1; 
@@ -1203,43 +1205,60 @@
                         monthCellsElements.push(monthCell);
                     });
 
-                    const memberVisibleTasks = tasksToRender.filter(t => t.memberIds.includes(member.id)); // Filter again for this member
-                    memberVisibleTasks.forEach(task => {
-                        if (task.lane === -1) return;
+                    // Get this member's tasks, sorted correctly for local lane assignment during rendering
+                    const memberTasksSortedForRendering = tasksToRender
+                        .filter(t => t.memberIds.includes(member.id))
+                        .sort((a, b) => a.startMonth - b.startMonth || a.endMonth - b.endMonth);
+                    
+                    let occupiedLanesEndMonths = []; // Tracks end months for tasks in *this specific member's row*
+
+                    memberTasksSortedForRendering.forEach(task => {
+                        // Calculate the correct lane for this task within this member's row
+                        let actualRenderLane = -1;
+                        for (let i = 0; i < occupiedLanesEndMonths.length; i++) {
+                            if (task.startMonth > occupiedLanesEndMonths[i]) { 
+                                occupiedLanesEndMonths[i] = task.endMonth;
+                                actualRenderLane = i;
+                                break;
+                            }
+                        }
+                        if (actualRenderLane === -1) { 
+                            occupiedLanesEndMonths.push(task.endMonth);
+                            actualRenderLane = occupiedLanesEndMonths.length - 1;
+                        }
 
                         const taskBar = document.createElement('div');
                         taskBar.classList.add('gantt-task-bar');
                         taskBar.textContent = task.name;
                         taskBar.title = task.name;
 
-                        // Assign procedural color based on memberIndex and then lane for variation
-                        const colorIndex = (memberIndex + task.lane) % taskColorPalette.length;
+                        const colorIndex = (memberIndex + actualRenderLane) % taskColorPalette.length; // Use actualRenderLane for color variation too
                         const bgColor = taskColorPalette[colorIndex];
                         taskBar.style.backgroundColor = bgColor;
-
-                        // Set text color based on background brightness
                         taskBar.style.color = getTextColorForBackground(bgColor);
-
-                        // Apply status classes
-                        const isOverdue = !task.completed && (dateToMonthIndex(task.endDate) < currentAbsoluteMonthIndex);
+                        
+                        // Apply status classes (isOverdue was defined earlier in renderGantt)
+                        // We need to recalculate isOverdue based on currentAbsoluteMonthIndex or pass it if needed
+                        // For simplicity, let's grab currentAbsoluteMonthIndex again or ensure it's accessible
+                        // It's defined in the outer scope of renderGantt, so it is accessible here.
+                        const isTaskOverdue = !task.completed && (dateToMonthIndex(task.endDate) < currentAbsoluteMonthIndex);
                         if (task.completed) {
                             taskBar.classList.add('task-completed');
-                        } else if (isOverdue) {
+                        } else if (isTaskOverdue) {
                             taskBar.classList.add('task-overdue');
                         }
                         
-                        // Calculate task bar width and position based on visible window
                         const visibleTaskStartMonth = Math.max(task.startMonth, currentStartMonthIndex);
                         const visibleTaskEndMonth = Math.min(task.endMonth, currentStartMonthIndex + actualVisibleMonthsCount - 1);
                         
                         const startOffsetInWindow = visibleTaskStartMonth - currentStartMonthIndex;
                         const durationInWindow = visibleTaskEndMonth - visibleTaskStartMonth + 1;
 
-                        if (durationInWindow <= 0) return; // Task not in current view after clipping
+                        if (durationInWindow <= 0) return; 
 
                         taskBar.style.width = `calc(${durationInWindow * 100}% - 4px)`;
-                        taskBar.style.left = '2px'; // Relative to the start cell
-                        taskBar.style.top = `${task.lane * laneHeight + taskVerticalPadding}px`;
+                        taskBar.style.left = '2px'; 
+                        taskBar.style.top = `${actualRenderLane * laneHeight + taskVerticalPadding}px`; // USE actualRenderLane HERE
                         taskBar.style.height = `${taskBarHeight}px`;
                         taskBar.style.cursor = 'pointer';
                         taskBar.dataset.taskId = task.id;
@@ -1611,7 +1630,7 @@
                 if (task.description) {
                     const descriptionDiv = document.createElement('div');
                     descriptionDiv.classList.add('description');
-                    descriptionDiv.textContent = task.description;
+                    descriptionDiv.innerHTML = task.description; // Use innerHTML here
                     descriptionDiv.title = task.description; // Show full description on hover
                     li.appendChild(descriptionDiv);
                 }
