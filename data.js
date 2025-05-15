@@ -1,7 +1,7 @@
 const teamMembers = [
     { id: 1, name: 'SRDDonkey', role: 'Lead Developer', projectIds: [1] },
     { id: 2, name: 'PookyThePolak', role: 'Gameplay Programmer', projectIds: [1, 2] },
-    { id: 3, name: 'Bluedrake42', role: 'Community Manager', projectIds: [1, 2] },
+    { id: 3, name: 'Bluedrake42', role: 'Community Manager', projectIds: [1, 2, 3, 4] },
     { id: 4, name: 'WarriorJ', role: 'Contributor', projectIds: [1] },
     { id: 5, name: 'Eddcast', role: 'Contributor', projectIds: [1] },
     { id: 6, name: 'Putridi', role: 'Contributor', projectIds: [2] },
@@ -14,7 +14,8 @@ const teamMembers = [
     { id: 13, name: 'Pizzaman', role: 'Contributor', projectIds: [1] },
     { id: 14, name: 'MrPonchovie', role: 'Contributor', projectIds: [1] },
     { id: 15, name: 'Yoshi', role: 'Contributor', projectIds: [1] },
-    { id: 16, name: 'Unassigned', role: 'Unassigned', projectIds: [1] }
+    { id: 16, name: 'Unassigned', role: 'Unassigned', projectIds: [1] },
+    { id: 17, name: 'SpicyMelon', role: 'Marketing/Release Manager', projectIds: [3, 4] }
 ];
 
 const projects = [
@@ -316,6 +317,50 @@ const projects = [
                 date: { year: 2026, month: 12 },
                 name: "Full Release (Isolation Sequence)",
                 description: "Full release for Isolation Sequence on Steam."
+            }
+        ]
+    },
+    {
+        id: 3,
+        name: "RevoltAI",
+        tasks: [
+            {
+                id: 1, // First task in this project
+                memberIds: [17], // SpicyMelon
+                name: 'Store Page & App Setup for RevoltAI',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 5 },   // May 2025
+                completed: false,
+                description: 'Prepare and finalize store pages and application setups for RevoltAI release.'
+            }
+        ],
+        deadlines: [
+            {
+                date: { year: 2025, month: 6 }, // June 2025
+                name: "Itch.io Launch (RevoltAI)",
+                description: "Launch RevoltAI on Itch.io."
+            }
+        ]
+    },
+    {
+        id: 4,
+        name: "Onyx Game Creator",
+        tasks: [
+            {
+                id: 1, // First task in this project
+                memberIds: [17], // SpicyMelon
+                name: 'Store Page & App Setup for Onyx Game Creator',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 5 },   // May 2025
+                completed: false,
+                description: 'Prepare and finalize store pages and application setups for Onyx Game Creator release.'
+            }
+        ],
+        deadlines: [
+            {
+                date: { year: 2025, month: 6 }, // June 2025
+                name: "Itch.io Launch (Onyx Game Creator)",
+                description: "Launch Onyx Game Creator on Itch.io."
             }
         ]
     }
