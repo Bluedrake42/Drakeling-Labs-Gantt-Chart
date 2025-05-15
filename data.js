@@ -1,7 +1,7 @@
 const teamMembers = [
     { id: 1, name: 'SRDDonkey', role: 'Lead Developer', projectIds: [1] },
     { id: 2, name: 'PookyThePolak', role: 'Gameplay Programmer', projectIds: [1, 2] },
-    { id: 3, name: 'Bluedrake42', role: 'Community Manager', projectIds: [1, 2, 3, 4] },
+    { id: 3, name: 'Bluedrake42', role: 'Community Manager', projectIds: [1, 2, 3, 4, 5] },
     { id: 4, name: 'WarriorJ', role: 'Contributor', projectIds: [1] },
     { id: 5, name: 'Eddcast', role: 'Contributor', projectIds: [1] },
     { id: 6, name: 'Putridi', role: 'Contributor', projectIds: [2] },
@@ -332,6 +332,15 @@ const projects = [
                 endDate: { year: 2025, month: 5 },   // May 2025
                 completed: false,
                 description: 'Prepare and finalize store pages and application setups for RevoltAI release.'
+            },
+            {
+                id: 2, // Next Task ID
+                memberIds: [3], // Bluedrake42
+                name: 'Announce and Begin Selling RevoltAI',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false,
+                description: 'Coordinate marketing efforts, announce RevoltAI, and ensure sales channels are active.'
             }
         ],
         deadlines: [
@@ -354,6 +363,24 @@ const projects = [
                 endDate: { year: 2025, month: 5 },   // May 2025
                 completed: false,
                 description: 'Prepare and finalize store pages and application setups for Onyx Game Creator release.'
+            },
+            {
+                id: 2, // Next Task ID
+                memberIds: [3], // Bluedrake42
+                name: 'Announce and Begin Selling Onyx Game Creator',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false,
+                description: 'Coordinate marketing efforts, announce Onyx Game Creator, and ensure sales channels are active.'
+            },
+            {
+                id: 3, // Next Task ID
+                memberIds: [17, 3], // SpicyMelon and Bluedrake42
+                name: 'Template Downloading & Updating Solution',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false,
+                description: 'Design and implement a system for users to download and update game templates within Onyx Game Creator.'
             }
         ],
         deadlines: [
@@ -363,6 +390,40 @@ const projects = [
                 description: "Launch Onyx Game Creator on Itch.io."
             }
         ]
+    },
+    {
+        id: 5,
+        name: "Project Ascension",
+        tasks: [
+            // May 2025 Completions
+            { id: 16, memberIds: [3], name: 'Complete: Student Orientation', startDate: { year: 2025, month: 5 }, endDate: { year: 2025, month: 5 }, completed: false, description: 'Complete course: Student Orientation' },
+            { id: 4, memberIds: [3], name: 'Complete: Learn Vibe Coding', startDate: { year: 2025, month: 5 }, endDate: { year: 2025, month: 5 }, completed: false, description: 'Complete course: Learn Vibe Coding' },
+            { id: 5, memberIds: [3], name: 'Complete: Sell Games on Steam', startDate: { year: 2025, month: 5 }, endDate: { year: 2025, month: 5 }, completed: false, description: 'Complete course: Sell Games on Steam' },
+
+            // June 2025 Completions
+            { id: 14, memberIds: [3], name: 'Complete: Learn R Programming', startDate: { year: 2025, month: 5 }, endDate: { year: 2025, month: 6 }, completed: false, description: 'Complete course: Learn R Programming' },
+            { id: 13, memberIds: [3], name: 'Complete: Learn SQL Database Management', startDate: { year: 2025, month: 6 }, endDate: { year: 2025, month: 6 }, completed: false, description: 'Complete course: Learn SQL Database Management' },
+            { id: 6, memberIds: [3], name: 'Complete: Sell Games on the Apple App Store', startDate: { year: 2025, month: 6 }, endDate: { year: 2025, month: 6 }, completed: false, description: 'Complete course: Sell Games on the Apple App Store' },
+
+            // July 2025 Completions
+            { id: 1, memberIds: [3], name: 'Complete: Build & Sell Applications Using Python & Visual Studio Code', startDate: { year: 2025, month: 6 }, endDate: { year: 2025, month: 7 }, completed: false, description: 'Complete course: Build & Sell Applications Using Python & Visual Studio Code' },
+            { id: 9, memberIds: [3], name: 'Complete: Sell Assets & Software on Gumroad', startDate: { year: 2025, month: 7 }, endDate: { year: 2025, month: 7 }, completed: false, description: 'Complete course: Sell Assets & Software on Gumroad' },
+            { id: 2, memberIds: [3], name: 'Complete: Create & Sell Games Using Javascript & Cursor', startDate: { year: 2025, month: 7 }, endDate: { year: 2025, month: 7 }, completed: false, description: 'Complete course: Create & Sell Games Using Javascript & Cursor' },
+
+            // August 2025 Completions
+            { id: 3, memberIds: [3], name: 'Complete: Build & Sell Websites Using HTML & Digital Ocean', startDate: { year: 2025, month: 7 }, endDate: { year: 2025, month: 8 }, completed: false, description: 'Complete course: Build & Sell Websites Using HTML & Digital Ocean' },
+            { id: 7, memberIds: [3], name: 'Complete: Automate & Monetize a Youtube Channel', startDate: { year: 2025, month: 8 }, endDate: { year: 2025, month: 8 }, completed: false, description: 'Complete course: Automate & Monetize a Youtube Channel' },
+            { id: 12, memberIds: [3], name: 'Complete: Learn Deep Statistical Analysis', startDate: { year: 2025, month: 8 }, endDate: { year: 2025, month: 8 }, completed: false, description: 'Complete course: Learn Deep Statistical Analysis' },
+
+            // September 2025 Completions
+            { id: 15, memberIds: [3], name: 'Complete: Build Machine Learning Algorithms', startDate: { year: 2025, month: 8 }, endDate: { year: 2025, month: 9 }, completed: false, description: 'Complete course: Build Machine Learning Algorithms' },
+            { id: 8, memberIds: [3], name: 'Complete: Build Your Own AI Assistant', startDate: { year: 2025, month: 9 }, endDate: { year: 2025, month: 9 }, completed: false, description: 'Complete course: Build Your Own AI Assistant' },
+
+            // October 2025 Completions
+            { id: 10, memberIds: [3], name: 'Complete: Create Stock & Crypto Trading Bots Using TensorFlow & Alpaca', startDate: { year: 2025, month: 9 }, endDate: { year: 2025, month: 10 }, completed: false, description: 'Complete course: Create Stock & Crypto Trading Bots Using TensorFlow & Alpaca' },
+            { id: 11, memberIds: [3], name: 'Complete: Create & Sell Games Using Onyx Game Creator', startDate: { year: 2025, month: 10 }, endDate: { year: 2025, month: 10 }, completed: false, description: 'Complete course: Create & Sell Games Using Onyx Game Creator' }
+        ],
+        deadlines: []
     }
     // Add more projects here if needed
 ]; 
