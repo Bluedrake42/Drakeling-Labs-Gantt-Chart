@@ -677,6 +677,7 @@
             <p id="modalTaskDescriptionContainer" style="display: none;"> <!-- Add container, hidden by default -->
                 <strong>Description:</strong> <span id="modalTaskDescription" style="font-style: italic;"></span>
             </p>
+            <p><strong>Project:</strong> <span id="modalProjectName"></span></p>
             <p><strong>Assignee:</strong> <span id="modalAssignee"></span></p>
             <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
             <p><strong>Status:</strong> <span id="modalStatus">Not implemented</span></p>
@@ -728,6 +729,7 @@
             const modalAssignee = document.getElementById('modalAssignee');
             const modalDuration = document.getElementById('modalDuration');
             const modalStatus = document.getElementById('modalStatus');
+            const modalProjectName = document.getElementById('modalProjectName'); // Get the new element
             const modalTaskDescriptionContainer = document.getElementById('modalTaskDescriptionContainer'); // Get the container
             const modalTaskDescription = document.getElementById('modalTaskDescription'); // Get the description span
             const prevMonthBtn = document.getElementById('prevMonthBtn');
@@ -768,7 +770,7 @@
             const minVisibleMonths = 3; 
             let visibleMonthsCount = maxVisibleMonths; // Default to max zoom out
             let currentStartMonthIndex = 0;
-            let currentProjectId = 1; 
+            let currentProjectId = "all"; // Default to "All Projects" view
             let currentView = 'gantt'; // Add current view state
             let upcomingTasksCurrentPage = 1; // State for board pagination
             const tasksPerPage = 5; // Configurable items per page for board
@@ -807,6 +809,19 @@
             }
 
             function getCurrentProject() {
+                if (currentProjectId === "all") {
+                    const allTasks = projects.reduce((acc, p) => acc.concat(p.tasks), []);
+                    // Ensure unique IDs for tasks if they are not already globally unique
+                    // For now, we assume task IDs are unique within their original project context and this is sufficient for display
+                    // If operations require globally unique IDs, this would need adjustment.
+                    const allDeadlines = projects.reduce((acc, p) => acc.concat(p.deadlines || []), []);
+                    return {
+                        id: "all",
+                        name: "All Projects",
+                        tasks: allTasks,
+                        deadlines: allDeadlines
+                    };
+                }
                 return projects.find(p => p.id === currentProjectId);
             }
 
@@ -860,9 +875,9 @@
             }
 
             // --- Modal Functions --- 
-            function openModal(task) {
-                const project = getCurrentProject();
-                if (!project) return;
+            function openModal(task, projectName) { // Add projectName parameter
+                // const project = getCurrentProject(); // No longer need this here as project name is passed
+                // if (!project) return; // No longer need this check here
                 
                 const assignees = teamMembers.filter(m => task.memberIds.includes(m.id));
                 const assigneeNames = assignees.map(m => m.name).join(', ') || 'Unknown';
@@ -888,6 +903,7 @@
                 modalAssignee.textContent = assigneeNames;
                 modalDuration.textContent = `${startMonthStr} - ${endMonthStr}`;
                 modalStatus.textContent = statusText;
+                modalProjectName.textContent = projectName || 'N/A'; // Display the project name
 
                 if (task.description) {
                     modalTaskDescription.innerHTML = task.description;
@@ -919,6 +935,18 @@
             // --- Tab Functions ---
             function renderTabs() {
                 tabList.innerHTML = ''; // Clear existing tabs
+
+                // Add "All Projects" tab first
+                const allProjectsTab = document.createElement('div');
+                allProjectsTab.classList.add('tab');
+                allProjectsTab.textContent = "All Projects";
+                allProjectsTab.dataset.projectId = "all";
+                if (currentProjectId === "all") {
+                    allProjectsTab.classList.add('active');
+                }
+                allProjectsTab.addEventListener('click', handleTabClick);
+                tabList.appendChild(allProjectsTab);
+
                 projects.forEach(project => {
                     const tab = document.createElement('div');
                     tab.classList.add('tab');
@@ -934,7 +962,9 @@
             }
 
             function handleTabClick(event) {
-                const newProjectId = parseInt(event.target.dataset.projectId);
+                const newProjectIdStr = event.target.dataset.projectId;
+                const newProjectId = (newProjectIdStr === "all") ? "all" : parseInt(newProjectIdStr);
+                
                 if (newProjectId !== currentProjectId) {
                     currentProjectId = newProjectId;
                     renderTabs(); // Re-render tabs to update active state
@@ -1005,9 +1035,14 @@
                 const tasks = project.tasks;
                 
                 // Filter team members for the current project
-                const projectMembers = teamMembers.filter(member => 
-                    member.projectIds && member.projectIds.includes(currentProjectId)
-                );
+                let projectMembers;
+                if (currentProjectId === "all") {
+                    projectMembers = [...teamMembers]; // Show all members for "All Projects" view
+                } else {
+                    projectMembers = teamMembers.filter(member => 
+                        member.projectIds && member.projectIds.includes(currentProjectId)
+                    );
+                }
                 
                 // Get current real-world date (once per render)
                 const now = new Date();
@@ -1205,6 +1240,9 @@
                         monthCellsElements.push(monthCell);
                     });
 
+                    // Determine width of one month cell for this row (same for all)
+                    const oneMonthCellWidth = monthCellsElements[0] ? monthCellsElements[0].offsetWidth : 0;
+
                     // Get this member's tasks, sorted correctly for local lane assignment during rendering
                     const memberTasksSortedForRendering = tasksToRender
                         .filter(t => t.memberIds.includes(member.id))
@@ -1256,7 +1294,14 @@
 
                         if (durationInWindow <= 0) return; 
 
-                        taskBar.style.width = `calc(${durationInWindow * 100}% - 4px)`;
+                        // Calculate width in pixels to avoid sub-pixel rounding issues with percentage widths
+                        if (oneMonthCellWidth > 0) {
+                            const widthPx = durationInWindow * oneMonthCellWidth - 4; // subtract 4px for padding
+                            taskBar.style.width = `${widthPx}px`;
+                        } else {
+                            // fallback to percentage width if measurement failed
+                            taskBar.style.width = `calc(${durationInWindow * 100}% - 4px)`;
+                        }
                         taskBar.style.left = '2px'; 
                         taskBar.style.top = `${actualRenderLane * laneHeight + taskVerticalPadding}px`; // USE actualRenderLane HERE
                         taskBar.style.height = `${taskBarHeight}px`;
@@ -1265,7 +1310,16 @@
                         taskBar.addEventListener('click', (event) => {
                             event.stopPropagation();
                             const clickedTask = tasks.find(t => t.id === parseInt(event.currentTarget.dataset.taskId));
-                            if (clickedTask) openModal(clickedTask);
+                            // Find the original project for this task
+                            let originalProjectName = "Unknown Project";
+                            if (currentProjectId === "all") {
+                                const sourceProject = projects.find(p => p.tasks.some(t_orig => t_orig.id === clickedTask.id && t_orig.name === clickedTask.name)); // Heuristic find
+                                if (sourceProject) originalProjectName = sourceProject.name;
+                            } else {
+                                const currentProj = getCurrentProject();
+                                if (currentProj) originalProjectName = currentProj.name;
+                            }
+                            if (clickedTask) openModal(clickedTask, originalProjectName);
                         });
 
                         if (monthCellsElements[startOffsetInWindow]) {
@@ -1624,7 +1678,13 @@
                 `;
                  // Add click listener to open task modal (optional but nice)
                  li.style.cursor = 'pointer';
-                 li.addEventListener('click', () => openModal(task)); 
+                 li.addEventListener('click', () => {
+                    // Find the original project for this task when clicking from board view
+                    let originalProjectName = "Unknown Project";
+                    const sourceProject = projects.find(p => p.tasks.some(t_orig => t_orig.id === task.id && t_orig.name === task.name)); // Heuristic find
+                    if (sourceProject) originalProjectName = sourceProject.name;
+                    openModal(task, originalProjectName);
+                 }); 
 
                 // Add description if it exists
                 if (task.description) {
