@@ -45,22 +45,49 @@ const projects = [
             },
             // MikeNike
             { 
-                id: 3, 
-                memberIds: [9], 
-                name: 'Vehicle Gunning Animations', 
-                startDate: { year: 2025, month: 5 }, // May 2025
-                endDate: { year: 2025, month: 8 },   // August 2025
-                completed: false, 
-                description: 'All vehicle gunning animations completed.' 
-            },
-            { 
                 id: 4, 
                 memberIds: [9], 
                 name: 'Steering Wheel Animations', 
-                startDate: { year: 2025, month: 7 }, 
-                endDate: { year: 2025, month: 9 }, 
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
                 completed: false, 
                 description: 'Steering wheel animations completed.' 
+            },
+            { 
+                id: 23, 
+                memberIds: [9], 
+                name: 'Animations for leaning out vehicle windows and firing', 
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false, 
+                description: 'Animations for leaning out vehicle windows and firing weapons.' 
+            },
+            { 
+                id: 24, 
+                memberIds: [9], 
+                name: 'Technical Gunnery Animations', 
+                startDate: { year: 2025, month: 7 }, // July 2025
+                endDate: { year: 2025, month: 9 },   // September 2025
+                completed: false, 
+                description: 'Complete gunnery animations for Technical vehicles.' 
+            },
+            { 
+                id: 25, 
+                memberIds: [9], 
+                name: 'Humvee Gunnery Animations', 
+                startDate: { year: 2025, month: 7 }, // July 2025
+                endDate: { year: 2025, month: 9 },   // September 2025
+                completed: false, 
+                description: 'Complete gunnery animations for Humvee vehicles.' 
+            },
+            { 
+                id: 26, 
+                memberIds: [9], 
+                name: 'Both vehicles rigged and playable in-game', 
+                startDate: { year: 2025, month: 10 }, // July 2025
+                endDate: { year: 2025, month: 11 },   // September 2025
+                completed: false, 
+                description: 'Ensure both Technical and Humvee vehicles are fully rigged and playable with completed animations.' 
             },
             { 
                 id: 5, 
@@ -303,6 +330,11 @@ const projects = [
             }
         ],
         deadlines: [
+            {
+                date: { year: 2025, month: 6 }, // June 2025
+                name: "Playtest Milestone (Isolation Sequence)",
+                description: "Playtest milestone for Isolation Sequence."
+            },
             {
                 date: { year: 2025, month: 10 },
                 name: "Steam Next Fest (Isolation Sequence)",
