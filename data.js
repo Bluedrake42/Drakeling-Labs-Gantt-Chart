@@ -15,7 +15,8 @@ const teamMembers = [
     { id: 14, name: 'MrPonchovie', role: 'Contributor', projectIds: [1] },
     { id: 15, name: 'Yoshi', role: 'Contributor', projectIds: [1] },
     { id: 16, name: 'Unassigned', role: 'Unassigned', projectIds: [1] },
-    { id: 17, name: 'SpicyMelon', role: 'Marketing/Release Manager', projectIds: [3, 4] }
+    { id: 17, name: 'SpicyMelon', role: 'Marketing/Release Manager', projectIds: [3, 4] },
+    { id: 18, name: 'PerpIDK', role: 'UI/UX Designer', projectIds: [1] }
 ];
 
 const projects = [
@@ -23,16 +24,6 @@ const projects = [
         id: 1,
         name: "Operation: Harsh Doorstop",
         tasks: [
-            // Yoshi
-            { 
-                id: 1, 
-                memberIds: [15], 
-                name: 'Vehicle System Prototype', 
-                startDate: { year: 2025, month: 5 }, // May 2025
-                endDate: { year: 2025, month: 7 },   // July 2025
-                completed: false, 
-                description: 'Full functional and playable prototype of the vehicle system.' 
-            },
             // AmBanan
             { 
                 id: 2, 
@@ -93,10 +84,19 @@ const projects = [
                 id: 5, 
                 memberIds: [9], 
                 name: '3P Bipod/Misc Animation Improvements', 
-                startDate: { year: 2025, month: 9 }, 
+                startDate: { year: 2025, month: 10 }, 
                 endDate: { year: 2025, month: 11 }, 
                 completed: false, 
                 description: 'Additional improvements for third person bipods and stuff.' 
+            },
+            { 
+            id: 85, 
+            memberIds: [9], 
+            name: 'Crouch & Prone Stance Transitions', 
+            startDate: { year: 2025, month: 10 }, 
+            endDate: { year: 2025, month: 11 }, 
+            completed: false, 
+            description: 'Additional improvements for third person bipods and stuff.' 
             },
             // Campaign Levels Team
             { 
@@ -119,109 +119,91 @@ const projects = [
             },
             {
                 id: 8,
-                memberIds: [16],
+                memberIds: [15, 2], // Yoshi, PookyThePolak
                 name: 'Implement "Hold Breath" & "Slight Zoom" Functionality While ADS',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
+                startDate: { year: 2025, month: 9 }, // September 2025
+                endDate: { year: 2025, month: 11 },   // November 2025
                 completed: false,
                 description: 'Add hold breath and slight zoom functionality while aiming down sights.'
             },
             {
                 id: 9,
-                memberIds: [16],
+                memberIds: [15, 2, 1], // Yoshi, PookyThePolak, SRDDonkey
                 name: 'Implement Radio Filters for VOIP',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
+                startDate: { year: 2025, month: 10 },
+                endDate: { year: 2025, month: 11 },
                 completed: false,
                 description: 'Add radio filter effects for VOIP communication.'
             },
             {
                 id: 10,
-                memberIds: [16],
-                name: 'Fix Auto-Balance Team Switching',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
-                completed: false,
+                memberIds: [1], // SRDDonkey
+                name: 'Fix Auto-Balance Team Switching', 
+                startDate: { year: 2025, month: 8 }, // August 2025
+                endDate: { year: 2025, month: 10 },   // October 2025
+                completed: false, 
                 description: 'Stop auto-balance from killing players while they are alive to teamswitch them.'
             },
             {
                 id: 11,
                 memberIds: [16],
-                name: 'Implement Free Look Capability',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
-                completed: false,
-                description: 'Add free look functionality for enhanced situational awareness.'
-            },
-            {
-                id: 12,
-                memberIds: [16],
                 name: 'Add Spread Projectiles System',
                 startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
+                endDate: { year: 2025, month: 11 },
                 completed: false,
                 description: 'Implement spread projectiles system to support weapons like shotguns.'
             },
             {
-                id: 13,
+                id: 12,
                 memberIds: [16],
-                name: 'Implement Kit Request and Rearm System',
+                name: 'Implement Vehicle Kit Restrictions',
                 startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
+                endDate: { year: 2025, month: 11 },
                 completed: false,
-                description: 'Implement requesting kits & rearming from ammo crates using the radial system.'
+                description: 'Add kit restrictions for vehicle access.'
+            },
+            {
+                id: 13,
+                memberIds: [13, 3], // Pizzaman, Bluedrake42
+                name: 'Implement Kit Request and Rearm System', 
+                startDate: { year: 2025, month: 8 }, // August 2025
+                endDate: { year: 2025, month: 10 },   // October 2025
+                completed: false, 
+                description: 'Implement requesting kits & rearming from ammo crates using the radial system.' 
             },
             {
                 id: 14,
                 memberIds: [16],
                 name: 'Implement Squad Vehicle Claiming',
                 startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
+                endDate: { year: 2025, month: 11 },
                 completed: false,
                 description: 'Add system for squads to claim vehicles.'
             },
             {
                 id: 15,
                 memberIds: [16],
-                name: 'Implement Vehicle Kit Restrictions',
+                name: 'Implement Squad Platoon Equipment Kits',
                 startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
+                endDate: { year: 2025, month: 11 },
                 completed: false,
-                description: 'Add kit restrictions for vehicle access.'
+                description: 'Add squad platoon equipment kit system.'
             },
             {
                 id: 16,
                 memberIds: [16],
                 name: 'Implement Squad Platoon Equipment Kits',
                 startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
+                endDate: { year: 2025, month: 11 },
                 completed: false,
                 description: 'Add squad platoon equipment kit system.'
             },
             {
-                id: 17,
-                memberIds: [16],
-                name: 'Overhaul Third Person Animations',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
-                completed: false,
-                description: 'Complete overhaul of third person animation system.'
-            },
-            {
-                id: 18,
-                memberIds: [16],
-                name: 'Expand UI With Upgrades',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
-                completed: false,
-                description: 'Expand UI with Casualfield & PerpIDK upgrades.'
-            },
-            {
                 id: 19,
-                memberIds: [16],
+                memberIds: [2, 4, 3], // PookyThePolak, WarriorJ, Bluedrake42
                 name: 'Add Steam Achievements',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
+                startDate: { year: 2025, month: 9 }, // September 2025
+                endDate: { year: 2025, month: 11 },   // November 2025
                 completed: false,
                 description: 'Implement in-game Steam achievements system.'
             },
@@ -230,27 +212,90 @@ const projects = [
                 memberIds: [16],
                 name: 'Implement Moddable Localization System',
                 startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
+                endDate: { year: 2025, month: 11 },
                 completed: false,
                 description: 'Add support for moddable localization system.'
             },
             {
                 id: 21,
-                memberIds: [16],
-                name: 'Implement Constructible Armed Emplacements',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 12 },
-                completed: false,
-                description: 'Add system for constructing and operating armed emplacements.'
+                memberIds: [15, 14, 2], // Yoshi, MrPonchovie, PookyThePolak
+                name: 'Implement Constructible Armed Emplacements', 
+                startDate: { year: 2025, month: 8 }, // August 2025
+                endDate: { year: 2025, month: 10 },   // October 2025
+                completed: false, 
+                description: 'Add system for constructing and operating armed emplacements.' 
             },
             {
                 id: 22,
                 memberIds: [1],
                 name: 'Projectile Networking Synchronization', 
-                startDate: { year: 2025, month: 5 }, // May 2025
-                endDate: { year: 2025, month: 12 },  // December 2025
+                startDate: { year: 2025, month: 8 }, // August 2025
+                endDate: { year: 2025, month: 11 },  // November 2025
                 completed: false, 
                 description: 'Improve projectile networking sync, including fixing frag grenade issues.' 
+            },
+            {
+                id: 27,
+                memberIds: [3], // Bluedrake42
+                name: 'UI Changes Design Document for PerpIDK',
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 5 },   // May 2025
+                completed: false,
+                description: 'Create comprehensive design document detailing all remaining UI changes for Operation: Harsh Doorstop to be handed off to PerpIDK (new team member).'
+            },
+            {
+                id: 28,
+                memberIds: [18], // PerpIDK
+                name: 'Implement Full UI Changes for Operation: Harsh Doorstop',
+                startDate: { year: 2025, month: 6 }, // June 2025
+                endDate: { year: 2025, month: 8 },   // August 2025
+                completed: false,
+                description: 'Complete implementation of all UI changes for Operation: Harsh Doorstop based on the design document, including final refinements and integration.'
+            },
+            {
+                id: 29,
+                memberIds: [9], // MikeNike
+                name: 'True First-Person Perspective Prototype', 
+                startDate: { year: 2025, month: 10 }, // October 2025
+                endDate: { year: 2025, month: 10 },   // October 2025
+                completed: false, 
+                description: 'Develop and prototype a true first-person perspective system with enhanced immersion and realistic player view mechanics.' 
+            },
+            { 
+                id: 30, 
+                memberIds: [9], // MikeNike
+                name: 'Third-Person Controller System Mockup', 
+                startDate: { year: 2025, month: 10 }, // October 2025
+                endDate: { year: 2025, month: 10 },   // October 2025
+                completed: false, 
+                description: 'Develop and create a comprehensive mockup for a third-person controller system, focusing on movement, camera mechanics, and player interaction.' 
+            },
+            { 
+                id: 31,
+                memberIds: [1], // SRDDonkey
+                name: 'Abandoned Vehicle Respawning System', 
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false, 
+                description: 'Develop and implement a system for respawning abandoned vehicles in the game world.' 
+            },
+            { 
+                id: 32, 
+                memberIds: [15], // Yoshi
+                name: 'Humvee Vehicle Full Playability', 
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false, 
+                description: 'Complete full implementation and playability of Humvee vehicle, including all core mechanics and interactions.' 
+            },
+            { 
+                id: 33, 
+                memberIds: [15], // Yoshi
+                name: 'Technical Vehicle Full Playability', 
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false, 
+                description: 'Complete full implementation and playability of Technical vehicle, including all core mechanics and interactions.' 
             }
         ],
         deadlines: [
@@ -258,6 +303,11 @@ const projects = [
                 date: { year: 2025, month: 12 },
                 name: "Full Release (Operation: Harsh Doorstop)",
                 description: "Full release out of early access for Operation: Harsh Doorstop on Steam."
+            },
+            {
+                date: { year: 2026, month: 2 },
+                name: "Follow-Up Update (Operation: Harsh Doorstop)",
+                description: "Follow-up update for Operation: Harsh Doorstop on Steam to fix any outlying issues post-release."
             }
         ]
     },
