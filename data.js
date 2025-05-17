@@ -146,19 +146,19 @@ const projects = [
             },
             {
                 id: 11,
-                memberIds: [16],
+                memberIds: [13, 1], // Pizzaman, SRDDonkey
                 name: 'Add Spread Projectiles System',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 11 },
+                startDate: { year: 2025, month: 7 },
+                endDate: { year: 2025, month: 9 },
                 completed: false,
                 description: 'Implement spread projectiles system to support weapons like shotguns.'
             },
             {
                 id: 12,
-                memberIds: [16],
+                memberIds: [13, 1], // Pizzaman, SRDDonkey
                 name: 'Implement Vehicle Kit Restrictions',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 11 },
+                startDate: { year: 2025, month: 7 },
+                endDate: { year: 2025, month: 9 },
                 completed: false,
                 description: 'Add kit restrictions for vehicle access.'
             },
@@ -173,28 +173,19 @@ const projects = [
             },
             {
                 id: 14,
-                memberIds: [16],
-                name: 'Implement Squad Vehicle Claiming',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 11 },
-                completed: false,
-                description: 'Add system for squads to claim vehicles.'
+                memberIds: [13, 15], // Pizzaman, Yoshi
+                name: 'Implement Squad Vehicle Claiming', 
+                startDate: { year: 2025, month: 8 }, // August 2025
+                endDate: { year: 2025, month: 10 },   // October 2025
+                completed: false, 
+                description: 'Add system for squads to claim vehicles.' 
             },
             {
                 id: 15,
-                memberIds: [16],
+                memberIds: [4, 13], // WarriorJ, Pizzaman
                 name: 'Implement Squad Platoon Equipment Kits',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 11 },
-                completed: false,
-                description: 'Add squad platoon equipment kit system.'
-            },
-            {
-                id: 16,
-                memberIds: [16],
-                name: 'Implement Squad Platoon Equipment Kits',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 11 },
+                startDate: { year: 2025, month: 7 }, // July 2025
+                endDate: { year: 2025, month: 8 },   // August 2025
                 completed: false,
                 description: 'Add squad platoon equipment kit system.'
             },
@@ -209,12 +200,12 @@ const projects = [
             },
             {
                 id: 20,
-                memberIds: [16],
-                name: 'Implement Moddable Localization System',
-                startDate: { year: 2025, month: 5 },
-                endDate: { year: 2025, month: 11 },
-                completed: false,
-                description: 'Add support for moddable localization system.'
+                memberIds: [1], // SRDDonkey
+                name: 'Implement Moddable Localization System', 
+                startDate: { year: 2025, month: 9 }, // September 2025
+                endDate: { year: 2025, month: 11 },   // November 2025
+                completed: false, 
+                description: 'Add support for moddable localization system.' 
             },
             {
                 id: 21,
@@ -296,6 +287,24 @@ const projects = [
                 endDate: { year: 2025, month: 6 },   // June 2025
                 completed: false, 
                 description: 'Complete full implementation and playability of Technical vehicle, including all core mechanics and interactions.' 
+            },
+            { 
+                id: 34,
+                memberIds: [3], // Bluedrake42
+                name: 'Platoon Mechanics Design Document', 
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false, 
+                description: 'Create comprehensive design document detailing the full mechanics, interactions, and implementation of platoon systems in Operation: Harsh Doorstop.' 
+            },
+            {
+                id: 35,
+                memberIds: [13, 1], // Pizzaman, SRDDonkey
+                name: 'Radial System for Construction and Kit Requesting', 
+                startDate: { year: 2025, month: 5 }, // May 2025
+                endDate: { year: 2025, month: 6 },   // June 2025
+                completed: false, 
+                description: 'Develop comprehensive radial system for construction and kit requesting from ammo crates, ensuring intuitive and efficient player interactions.' 
             }
         ],
         deadlines: [
